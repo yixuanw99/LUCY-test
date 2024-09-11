@@ -6,9 +6,8 @@ from pathlib import Path
 import logging
 from typing import Dict, Union
 sys.path.append(str(Path(__file__).resolve().parents[2]))
-# from .idat_processor import process_idat, champ_df_postprocess
 from app.services.idat_processor import process_idat, champ_df_postprocess
-# from .r_epidish_processor import run_epidish_with_csv
+from app.services.r_epidish_processor import run_epidish_with_csv
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -138,6 +137,6 @@ if __name__ == "__main__":
     # result_from_pd = sa2bl_from_pd(methylation_data, run_epidish_with_csv("backend/data/processed_csv/our_all_samples_normed_processed.csv"))
     
     # # 下面這行從頭跑，需要跑很久，所以還沒有測試
-    # # result_from_pd = sa2bl_from_pd(champ_df_postprocess(process_idat("D:/SideProject/EpiAging/SVD_test/raw/Sample_Sheet.csv", "D:/SideProject/EpiAging/SVD_test/raw")), run_epidish_with_csv("data/processed_csv/our_all_samples_normed_processed.csv"))
+    # result_from_pd = sa2bl_from_pd(champ_df_postprocess(process_idat("D:/SideProject/EpiAging/SVD_test/raw/Sample_Sheet.csv", "D:/SideProject/EpiAging/SVD_test/raw")), run_epidish_with_csv("data/processed_csv/our_all_samples_normed_processed.csv"))
     # print("Result from DataFrames:")
     # print(result_from_pd.head())
