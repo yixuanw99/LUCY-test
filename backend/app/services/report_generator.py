@@ -6,15 +6,31 @@ from datetime import date
 from scipy import stats
 from typing import Dict, Union, List
 from pathlib import Path
+import logging
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
-from app.services.idat_processor import process_idat, champ_df_postprocess, save_processed_data
-from app.services.r_epidish_processor import run_epidish_with_csv
-from app.services.sa2bl_processor import sa2bl_from_pd
-from app.services.biolearn_processor import run_biolearn
+from app.services.idat_processor import IDATProcessor
+from app.services.r_epidish_processor import EpiDISHProcessor
+from app.services.sa2bl_processor import SA2BLProcessor
+from app.services.biolearn_processor import BioLearnProcessor
 
 # Set project root directory
 BACKEND_ROOT = Path(__file__).resolve().parents[2]
+
+def setup_logging():
+    log_dir = BACKEND_ROOT / 'logs'
+    log_dir.mkdir(exist_ok=True)
+    log_file = log_dir / 'application.log'
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler()
+        ]
+    )
+
 
 class ReportGenerator:
     def __init__(self):
@@ -24,16 +40,19 @@ class ReportGenerator:
         self.sa2bl_data = None
         self.biolearn_result_Horvathv2 = None
         self.biolearn_result_DunedinPACE = None
+        self.epidish_processor = EpiDISHProcessor()
+        self.sa2bl_processor = SA2BLProcessor()
+        self.biolearn_processor = BioLearnProcessor()
 
     def _run_epidish(self):
-        self.epidish_data = run_epidish_with_csv(self.processed_data_path)
+        self.epidish_data = self.epidish_processor.run_epidish_with_csv(self.processed_data_path)
 
     def _perform_sa2bl(self):
-        self.sa2bl_data = sa2bl_from_pd(self.processed_data, self.epidish_data)
+        self.sa2bl_data = self.sa2bl_processor.sa2bl_from_pd(self.processed_data, self.epidish_data)
 
     def _run_biolearn(self, metadata):
-        self.biolearn_result_Horvathv2 = run_biolearn(self.processed_data, metadata, ["Horvathv2"], "temp_biolearn_results.csv")
-        self.biolearn_result_DunedinPACE = run_biolearn(self.sa2bl_data, metadata, ["DunedinPACE"], "temp_biolearn_results.csv")
+        self.biolearn_result_Horvathv2 = self.biolearn_processor.run_biolearn(self.processed_data, metadata, ["Horvathv2"], "temp_biolearn_results.csv")
+        self.biolearn_result_DunedinPACE = self.biolearn_processor.run_biolearn(self.sa2bl_data, metadata, ["DunedinPACE"], "temp_biolearn_results.csv")
 
     def generate_report(self, metadata) -> List[Dict[str, Dict[str, Union[str, float, date]]]]:
         self._run_epidish()
@@ -61,10 +80,14 @@ class ReportGenerator:
         return reports
 
 class IdatReportGenerator(ReportGenerator):
+    def __init__(self):
+        super().__init__()
+        self.idat_processor = IDATProcessor()
+
     def process_data(self, pd_file_path: str, idat_file_path: str):
-        raw_data = process_idat(pd_file_path, idat_file_path)
-        self.processed_data = champ_df_postprocess(raw_data)
-        self.processed_data_path = save_processed_data(self.processed_data, "report_test01")
+        raw_data = self.idat_processor.process_idat(pd_file_path, idat_file_path)
+        self.processed_data = self.idat_processor.champ_df_postprocess(raw_data)
+        self.processed_data_path = self.idat_processor.save_processed_data(self.processed_data, "report_test01")
 
 class ProcessedDataReportGenerator(ReportGenerator):
     def process_data(self, processed_data_path: str):
@@ -72,6 +95,9 @@ class ProcessedDataReportGenerator(ReportGenerator):
         self.processed_data = pd.read_csv(self.processed_data_path, index_col='probeID')
 
 if __name__ == "__main__":
+    # 在主程序開始時調用
+    setup_logging()
+    
     # Example metadata
     metadata = {
         'age': [42, 42, 43, 43, 43, 28, 28, 28, 42, 42, 43, 43, 43, 28, 28, 28],
