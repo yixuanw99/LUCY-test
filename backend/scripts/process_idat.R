@@ -36,7 +36,7 @@ process_idat <- function(pd_file_path, idat_file_path) {
     
     # 創建一個包含數據、行名和列名的列表
     result_list <- list(
-      data = myNorm_df,
+      beta_table = myNorm_df,
       rownames = myNorm_df$probeID,
       colnames = colnames(myNorm_df)
     )

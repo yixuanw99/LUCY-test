@@ -18,17 +18,17 @@ load_dotenv(dotenv_path=env_path)
 
 
 def process_idat(pd_file_path, idat_file_path) -> pd.DataFrame:
-    """
+    '''
     使用 R 腳本處理 IDAT 文件，並返回處理後的 DataFrame
     
     :param pd_file_path: Sample Sheet CSV 文件的路徑
     :param idat_file_path: 包含 IDAT 文件的目錄的路徑
     :return: ChAMP處理後的 DataFrame
-    """
+    '''
     logger.info(f"Processing IDAT file: {idat_file_path}")
     logger.info(f"Using Sample Sheet: {pd_file_path}")
 
-    r_script_path = os.getenv('R_SCRIPT_PATH')
+    r_script_path = os.getenv('CHAMP_R_SCRIPT_PATH')
     r_executable = os.getenv('R_EXECUTABLE')
     
     if not r_script_path:
@@ -66,12 +66,12 @@ def process_idat(pd_file_path, idat_file_path) -> pd.DataFrame:
             logger.info("IDAT processing completed successfully")
             
             # 從JSON中提取數據、行名和列名
-            data = output['data']['data']
+            beta_table = output['data']['beta_table']
             rownames = output['data']['rownames']
             colnames = output['data']['colnames']
             
             # 創建DataFrame
-            df = pd.DataFrame(data, index=rownames, columns=colnames)
+            df = pd.DataFrame(beta_table, index=rownames, columns=colnames)
             
             return df
         
@@ -87,12 +87,12 @@ def process_idat(pd_file_path, idat_file_path) -> pd.DataFrame:
         raise
 
 def champ_df_postprocess(beta_table: pd.DataFrame) -> pd.DataFrame:
-    """
+    '''
     後處理 CHAMP 輸出的 beta_table DataFrame
 
     :param beta_table: 從 CHAMP 腳本獲得的 beta_table DataFrame
     :return: 去除重複probe(重複的取平均)後的 DataFrame
-    """
+    '''
     # 確保 'probeID' 列存在
     if 'probeID' not in beta_table.columns:
         raise ValueError("Expected 'probeID' column not found in the DataFrame")
@@ -108,13 +108,13 @@ def champ_df_postprocess(beta_table: pd.DataFrame) -> pd.DataFrame:
     return result
 
 def save_processed_data(beta_table_rmdup: pd.DataFrame, batch_name: str) -> str:
-    """
+    '''
     保存處理後的數據到 CSV 文件
     
     :param beta_table_rmdup: 處理後的 DataFrame
     :param batch_name: 樣本名稱，用於生成文件名
     :return: 保存的文件的相對路徑
-    """
+    '''
     PROCESSED_CSV_DIR = BACKEND_ROOT / 'data' / 'processed_csv'
     output_file = PROCESSED_CSV_DIR / f"{batch_name}_processed.csv"
     beta_table_rmdup.to_csv(output_file, index=True)
