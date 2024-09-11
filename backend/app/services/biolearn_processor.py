@@ -16,6 +16,7 @@ BACKEND_ROOT = Path(__file__).resolve().parents[2]
 OUTPUT_DIR = BACKEND_ROOT / 'data' / 'biolearn_output'
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
+# not used
 def read_model_probes(file_path: Union[str, Path]) -> pd.Series:
     """
     Read the model probes from a CSV file.
@@ -26,6 +27,7 @@ def read_model_probes(file_path: Union[str, Path]) -> pd.Series:
     model_probes = pd.read_csv(file_path, header=None, names=['probeID'])
     return model_probes['probeID']
 
+# not used
 def get_unique_methylation_sites(models: List[str]) -> np.ndarray:
     """
     Get unique methylation sites for given models.
@@ -67,7 +69,7 @@ def process_biolearn_models(data: GeoData, models: List[str]) -> pd.DataFrame:
     combined_df = pd.concat(results, axis=1)
     return combined_df
 
-def save_model_results(results: pd.DataFrame, output_file: str):
+def save_model_results(results: pd.DataFrame, output_file: str) -> str:
     """
     Save the combined model results to a CSV file.
     
@@ -77,8 +79,9 @@ def save_model_results(results: pd.DataFrame, output_file: str):
     output_path = OUTPUT_DIR / output_file
     results.to_csv(output_path, index=True)
     logger.info(f"Results saved to {output_path}")
+    return output_path.relative_to(BACKEND_ROOT).as_posix()
 
-def run_biolearn_analysis(methylation_data: pd.DataFrame, metadata: Dict[str, List], models: List[str], output_file: str):
+def run_biolearn(methylation_data: pd.DataFrame, metadata: Dict[str, List], models: List[str], output_file: str):
     """
     Run the complete biolearn analysis pipeline.
     
@@ -89,29 +92,33 @@ def run_biolearn_analysis(methylation_data: pd.DataFrame, metadata: Dict[str, Li
     """
     logger.info("Starting biolearn analysis")
     
-    # Create GeoData object
+    # Create GeoData object(a class from biolearn)
     geo_data = GeoData.from_methylation_matrix(methylation_data)
     geo_data.metadata['age'] = metadata['age']
     geo_data.metadata['sex'] = metadata['sex']
-    geo_data.metadata.set_index('probeID', inplace=True)
     
     # Process models
     results = process_biolearn_models(geo_data, models)
     
     # Save results
-    save_model_results(results, output_file)
+    relative_path = save_model_results(results, output_file)
+    logger.info(f"Processed data saved. Relative path: {relative_path}")
     
     logger.info("Biolearn analysis completed")
 
 if __name__ == "__main__":
     # Example usage
+    import sys
+    sys.path.append(str(Path(__file__).resolve().parents[2]))
     from app.services.sa2bl_processor import sa2bl_from_csv
     
-    methylation_data = sa2bl_from_csv("our_all_samples_normed_processed.csv", "our_all_samples_cell_proportions.csv")
+    # methylation_data = sa2bl_from_csv("our_all_samples_normed_processed.csv", "our_all_samples_cell_proportions.csv")
+    beta_table_path = BACKEND_ROOT / 'data' / 'processed_beta_table' / 'our_all_samples_normed_processed.csv'
+    methylation_data = pd.read_csv(beta_table_path, index_col='probeID')
     metadata = {
         'age': [50, 64, 57, 65, 56, 56, 57, 51, 53, 70, 61, 60, 66, 72, 61, 56],
         'sex': [1] * 16
     }
-    models = ["Horvathv1", "Hannum", "PhenoAge", "GrimAgeV2", "DunedinPACE"]
+    models = ["Horvathv2","DunedinPACE"]
     
-    run_biolearn_analysis(methylation_data, metadata, models, "biolearn_results.csv")
+    run_biolearn(methylation_data, metadata, models, "biolearn_results.csv")
