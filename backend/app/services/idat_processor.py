@@ -3,7 +3,6 @@ import pandas as pd
 import logging
 import os
 import subprocess
-import argparse
 import json
 from dotenv import load_dotenv
 from pathlib import Path
@@ -123,6 +122,8 @@ def save_processed_data(beta_table_rmdup: pd.DataFrame, batch_name: str) -> str:
 
 
 if __name__ == "__main__":
+    import argparse
+
     parser = argparse.ArgumentParser(description="Process IDAT file")
     parser.add_argument("pd_file_path", help="Path to the Sample Sheet CSV file")
     parser.add_argument("idat_file_path", help="Path to the directory containing IDAT files")

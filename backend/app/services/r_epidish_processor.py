@@ -93,6 +93,8 @@ def save_cell_proportions(cell_proportions: pd.DataFrame, batch_name: str) -> st
     return output_file.relative_to(BACKEND_ROOT).as_posix()
 
 if __name__ == "__main__":
+    # demo usage
+    # python app/services/r_epidish_processor.py "data/processed_csv/our_all_samples_normed_processed.csv"  --batch_name our_all_samples
     import argparse
 
     parser = argparse.ArgumentParser(description="Process CSV file with EpiDISH")
