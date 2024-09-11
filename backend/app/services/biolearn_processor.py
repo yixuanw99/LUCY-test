@@ -95,16 +95,18 @@ def run_biolearn(methylation_data: pd.DataFrame, metadata: Dict[str, List], mode
     # Create GeoData object(a class from biolearn)
     geo_data = GeoData.from_methylation_matrix(methylation_data)
     geo_data.metadata['age'] = metadata['age']
-    geo_data.metadata['sex'] = metadata['sex']
+    geo_data.metadata['sex'] = metadata['sex'] # 1是女性，2是男性
     
     # Process models
-    results = process_biolearn_models(geo_data, models)
+    results_df = process_biolearn_models(geo_data, models)
+    # results = [ModelGallery().get(model).predict(geo_data) for model in models]
     
     # Save results
-    relative_path = save_model_results(results, output_file)
+    relative_path = save_model_results(results_df, output_file)
     logger.info(f"Processed data saved. Relative path: {relative_path}")
     
     logger.info("Biolearn analysis completed")
+    return results_df
 
 if __name__ == "__main__":
     # Example usage
@@ -116,9 +118,12 @@ if __name__ == "__main__":
     beta_table_path = BACKEND_ROOT / 'data' / 'processed_beta_table' / 'our_all_samples_normed_processed.csv'
     methylation_data = pd.read_csv(beta_table_path, index_col='probeID')
     metadata = {
-        'age': [50, 64, 57, 65, 56, 56, 57, 51, 53, 70, 61, 60, 66, 72, 61, 56],
-        'sex': [1] * 16
+        'age': [42, 42, 43, 43, 43, 28, 28, 28, 42, 42, 43, 43, 43, 28, 28, 28],
+        'sex': [2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1]
     }
     models = ["Horvathv2","DunedinPACE"]
+    # models = ["Horvathv2"]
+
     
-    run_biolearn(methylation_data, metadata, models, "biolearn_results.csv")
+    result = run_biolearn(methylation_data, metadata, models, "biolearn_results.csv")
+    logger.info(f'biolearn result: {result}')
