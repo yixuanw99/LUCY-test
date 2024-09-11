@@ -114,8 +114,8 @@ def save_processed_data(beta_table_rmdup: pd.DataFrame, batch_name: str) -> str:
     :param batch_name: 樣本名稱，用於生成文件名
     :return: 保存的文件的相對路徑
     '''
-    PROCESSED_CSV_DIR = BACKEND_ROOT / 'data' / 'processed_csv'
-    output_file = PROCESSED_CSV_DIR / f"{batch_name}_processed.csv"
+    PROCESSED_BETA_TABLE_DIR = BACKEND_ROOT / 'data' / 'processed_beta_table'
+    output_file = PROCESSED_BETA_TABLE_DIR / f"{batch_name}_processed.csv"
     beta_table_rmdup.to_csv(output_file, index=True)
     logging.info(f"Processed data saved to {output_file}")
     return output_file.relative_to(BACKEND_ROOT).as_posix()
