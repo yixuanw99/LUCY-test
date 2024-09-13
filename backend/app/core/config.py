@@ -1,7 +1,7 @@
 # backend/app/core/config.py
 
 import os
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
 
 # 確定當前環境
@@ -17,7 +17,6 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     DEBUG: bool
 
-    class Config:
-        env_file = f".env.{env}"
+    model_config = SettingsConfigDict(env_file=".env")
 
 settings = Settings()
