@@ -1,18 +1,17 @@
 # app/services/report_generator.py
 import pandas as pd
 import numpy as np
-import sys
 from datetime import date
 from scipy import stats
 from typing import Dict, Union, List
 from pathlib import Path
 import logging
-sys.path.append(str(Path(__file__).resolve().parents[2]))
-
 from app.services.idat_processor import IDATProcessor
 from app.services.r_epidish_processor import EpiDISHProcessor
 from app.services.sa2bl_processor import SA2BLProcessor
 from app.services.biolearn_processor import BioLearnProcessor
+from app.db.models import Report
+from app.db.session import SessionLocal
 
 # Set project root directory
 BACKEND_ROOT = Path(__file__).resolve().parents[2]
@@ -79,6 +78,32 @@ class ReportGenerator:
 
         return reports
 
+    def save_reports(self, reports: List[Dict[str, Dict[str, Union[str, float, date]]]]) -> List[Report]:
+        db = SessionLocal()
+        try:
+            saved_reports = []
+            for report_data in reports:
+                for sample_id, data in report_data.items():
+                    new_report = Report(
+                        sample_id=sample_id,
+                        collection_date=data['collection_date'],
+                        report_date=data['report_date'],
+                        bio_age=data['bio_age'],
+                        chro_age=data['chro_age'],
+                        pace_value=data['pace_value'],
+                        pace_pr=data['pace_pr']
+                    )
+                    db.add(new_report)
+                    saved_reports.append(new_report)
+            db.commit()
+            return saved_reports
+        finally:
+            db.close()
+
+    def generate_and_save_reports(self, metadata) -> List[Report]:
+        reports = self.generate_report(metadata)
+        return self.save_reports(reports)
+
 class IdatReportGenerator(ReportGenerator):
     def __init__(self):
         super().__init__()
@@ -115,6 +140,7 @@ if __name__ == "__main__":
     processed_data_path = BACKEND_ROOT / 'data' / 'processed_beta_table' / 'our_all_samples_normed_processed.csv'
     processed_generator = ProcessedDataReportGenerator()
     processed_generator.process_data(str(processed_data_path))
-    report_from_processed = processed_generator.generate_report(metadata)
-    print("\nReport from processed data:")
-    print(report_from_processed)
+    saved_reports = processed_generator.generate_and_save_reports(metadata)
+    print("\nReports generated and saved:")
+    for report in saved_reports:
+        print(f"Sample ID: {report.sample_id}, Bio Age: {report.bio_age}")
