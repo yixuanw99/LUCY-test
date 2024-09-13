@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     PROJECT_NAME: str
     SECRET_KEY: str
     DEBUG: bool
+    SECRET_KEY: str = "YOUR_SECRET_KEY"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     model_config = SettingsConfigDict(env_file=".env")
 

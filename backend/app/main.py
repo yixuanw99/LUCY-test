@@ -7,6 +7,7 @@ from app.core.config import settings
 import os
 from app.db.base import Base
 from app.db.session import engine
+from app.api.endpoints import auth
 
 import logging
 
@@ -51,6 +52,7 @@ async def general_exception_handler(request, exc):
 app.include_router(report.router)
 app.include_router(sample.router)
 app.include_router(user.router, prefix="/api/v1")
+app.include_router(auth.router, tags=["authentication"])
 
 
 if __name__ == "__main__":
