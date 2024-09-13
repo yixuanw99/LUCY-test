@@ -56,8 +56,8 @@ class SampleData(Base):
     Sentrix_ID = Column(String(12))
     Sentrix_Position = Column(String(6))
     idat_file = Column(String(255))
-    processed_beta_table_path = Column(String(255))
-    cell_proportion_path = Column(String(255))
+    processed_beta_table_path = Column(String(255), nullable=True)
+    cell_proportion_path = Column(String(255), nullable=True)
 
     report = relationship("Report", back_populates="sample_data", uselist=False)
     user = relationship("User", back_populates="sample_data")
