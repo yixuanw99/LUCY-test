@@ -72,6 +72,11 @@
                     <div class="section-figure">
                         <disease-risks-table :disease-risks="diseaseRisks"></disease-risks-table>
                         <disease-risks-plot :disease-risks="diseaseRisks"></disease-risks-plot>
+                        <disease-risks-plot2 title="全因死亡率風險" :horvath-risk="diseaseRisks[0].acmHorvathRisk" :pace-risk="diseaseRisks[1].acmPaceRisk" />
+                        <disease-risks-plot2 title="心血管疾病風險" :horvath-risk="diseaseRisks[0].cvdHorvathRisk" :pace-risk="diseaseRisks[1].cvdPaceRisk" />
+                        <disease-risks-plot2 title="糖尿病風險" :horvath-risk="diseaseRisks[0].dmHorvathRisk" :pace-risk="diseaseRisks[1].dmPaceRisk" />
+                        <disease-risks-plot2 title="失智風險" :horvath-risk="diseaseRisks[0].adHorvathRisk" :pace-risk="diseaseRisks[1].adPaceRisk" />
+                        <disease-risks-plot2 title="癌症風險" :horvath-risk="diseaseRisks[0].cancerHorvathRisk" :pace-risk="diseaseRisks[1].cancerPaceRisk" />
                     </div>
                 </div>
             </div>
@@ -84,6 +89,7 @@ import GaugeChart from '@/components/GaugeChart.vue'
 import AgingSpeedPlot from '@/components/AgingSpeedPlot.vue'
 import DiseaseRisksTable from '@/components/DiseaseRisksTable.vue'
 import DiseaseRisksPlot from '@/components/DiseaseRisksPlot.vue'
+import DiseaseRisksPlot2 from '@/components/DiseaseRisksPlot2.vue'
 import axios from 'axios'
 
 export default {
@@ -92,7 +98,8 @@ export default {
         GaugeChart,
         AgingSpeedPlot,
         DiseaseRisksTable,
-        DiseaseRisksPlot
+        DiseaseRisksPlot,
+        DiseaseRisksPlot2
     },
     data() {
         return {
@@ -198,6 +205,12 @@ export default {
 
 .input-section button:hover {
     background-color: #45a049;
+}
+
+.section-figure {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
 }
 
 /* 其他現有的樣式... */
