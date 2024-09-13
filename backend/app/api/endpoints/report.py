@@ -35,14 +35,20 @@ def get_report(sample_id: str, db: Session = Depends(get_db)):
 #     db.refresh(report)
 #     return report
 
-@router.get("/user/reports", response_model=List[report_schema.Report])
+@router.get("/users/{user_id}/reports", response_model=List[report_schema.Report])
 def get_user_reports(
+    user_id: int,
     skip: int = 0, 
     limit: int = 100, 
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    db: Session = Depends(get_db)
 ):
-    reports = db.query(models.Report).filter(models.Report.user_id == current_user.id).offset(skip).limit(limit).all()
+    # 首先檢查用戶是否存在
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # 查詢該用戶的報告
+    reports = db.query(models.Report).filter(models.Report.user_id == user_id).offset(skip).limit(limit).all()
     return reports
 
 # @router.get("/admin/reports", response_model=List[report_schema.Report])

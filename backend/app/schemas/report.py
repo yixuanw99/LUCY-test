@@ -5,7 +5,7 @@ from typing import Optional
 
 class ReportBase(BaseModel):
     user_id: int
-    sample_id: str
+    sample_id: int
     collection_date: date
     report_date: date
     bio_age: float

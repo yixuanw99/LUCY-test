@@ -9,7 +9,7 @@ from typing import List
 router = APIRouter()
 
 @router.get("/sample/{sample_id}", response_model=sample_schema.SampleData)
-def get_sample(sample_id: str, db: Session = Depends(get_db)):
+def get_sample_data(sample_id: str, db: Session = Depends(get_db)):
     sample = db.query(models.SampleData).filter(models.SampleData.id == sample_id).first()
     if not sample:
         raise HTTPException(status_code=404, detail="Sample not found")
