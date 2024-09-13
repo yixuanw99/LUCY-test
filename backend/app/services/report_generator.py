@@ -5,12 +5,16 @@ from datetime import date
 from scipy import stats
 from typing import Dict, Union, List
 from pathlib import Path
+import sys
+
+project_root = Path(__file__).resolve().parents[2]
+sys.path.append(str(project_root))
 import logging
 from app.services.idat_processor import IDATProcessor
 from app.services.r_epidish_processor import EpiDISHProcessor
 from app.services.sa2bl_processor import SA2BLProcessor
 from app.services.biolearn_processor import BioLearnProcessor
-from app.db.models import Report
+from app.db.models import Report, SampleData
 from app.db.session import SessionLocal
 
 # Set project root directory
@@ -59,19 +63,35 @@ class ReportGenerator:
         self._run_biolearn(metadata)
 
         reports = []
-        for i, sample_id in enumerate(self.processed_data.columns):
+        for i, sample_name in enumerate(self.processed_data.columns):
+            bio_age = self.biolearn_result_Horvathv2['Horvathv2_Predicted'].iloc[i]
+            chro_age = metadata['age'][i]
             pace_value = self.biolearn_result_DunedinPACE['DunedinPACE_Predicted'].iloc[i]
             pace_pr = stats.norm.cdf(pace_value, loc=1, scale=0.2) * 100
 
+            # New calculations
+            delta_age = bio_age - chro_age
+            delta_pace = pace_value - 1
+
             report = {
-                sample_id: {
-                    "name": sample_id,
-                    "collection_date": date(2023, 1, 1),  # Placeholder date, you might want to get this from metadata
+                sample_name: {
+                    "sample_name": sample_name,
+                    "collection_date": date(2023, 1, 1),  # Placeholder date
                     "report_date": date.today(),
-                    "bio_age": self.biolearn_result_Horvathv2['Horvathv2_Predicted'].iloc[i],
-                    "chro_age": metadata['age'][i],
+                    "bio_age": bio_age,
+                    "chro_age": chro_age,
                     "pace_value": pace_value,
-                    "pace_pr": pace_pr
+                    "pace_pr": pace_pr,
+                    "acm_horvath_risk": 4.6 * delta_age,
+                    "cvd_horvath_risk": 4.0 * delta_age,
+                    "dm_horvath_risk": 8.0 * delta_age,
+                    "ad_horvath_risk": 4.1 * delta_age,
+                    "cancer_horvath_risk": 6.0 * delta_age,
+                    "acm_pace_risk": 1.95 * delta_pace,
+                    "cvd_pace_risk": 5.0 * delta_pace,
+                    "dm_pace_risk": 1.55 * delta_pace,
+                    "ad_pace_risk": 5.0 * delta_pace,
+                    "cancer_pace_risk": 5.0 * delta_pace
                 }
             }
             reports.append(report)
@@ -83,15 +103,32 @@ class ReportGenerator:
         try:
             saved_reports = []
             for report_data in reports:
-                for sample_id, data in report_data.items():
+                for sample_name, data in report_data.items():
+                    # 查找對應的 SampleData
+                    sample = db.query(SampleData).filter(SampleData.sample_name == sample_name).first()
+                    if not sample:
+                        logging.warning(f"Sample with name {sample_name} not found in database.")
+                        continue
+
                     new_report = Report(
-                        sample_id=sample_id,
+                        sample_id=sample.id,
+                        user_id=sample.user_id,
                         collection_date=data['collection_date'],
                         report_date=data['report_date'],
                         bio_age=data['bio_age'],
                         chro_age=data['chro_age'],
                         pace_value=data['pace_value'],
-                        pace_pr=data['pace_pr']
+                        pace_pr=data['pace_pr'],
+                        acm_horvath_risk=data['acm_horvath_risk'],
+                        cvd_horvath_risk=data['cvd_horvath_risk'],
+                        dm_horvath_risk=data['dm_horvath_risk'],
+                        ad_horvath_risk=data['ad_horvath_risk'],
+                        cancer_horvath_risk=data['cancer_horvath_risk'],
+                        acm_pace_risk=data['acm_pace_risk'],
+                        cvd_pace_risk=data['cvd_pace_risk'],
+                        dm_pace_risk=data['dm_pace_risk'],
+                        ad_pace_risk=data['ad_pace_risk'],
+                        cancer_pace_risk=data['cancer_pace_risk']
                     )
                     db.add(new_report)
                     saved_reports.append(new_report)
@@ -142,5 +179,3 @@ if __name__ == "__main__":
     processed_generator.process_data(str(processed_data_path))
     saved_reports = processed_generator.generate_and_save_reports(metadata)
     print("\nReports generated and saved:")
-    for report in saved_reports:
-        print(f"Sample ID: {report.sample_id}, Bio Age: {report.bio_age}")
