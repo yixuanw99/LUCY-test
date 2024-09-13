@@ -23,9 +23,9 @@ class User(Base):
 class Report(Base):
     __tablename__ = "reports"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    sample_id = Column(String(30), ForeignKey("sample_data.sample_id"), unique=True, nullable=True)
+    sample_id = Column(Integer, ForeignKey("sample_data.id"), nullable=False)
     collection_date = Column(Date)
     report_date = Column(Date)
     bio_age = Column(Float)
@@ -51,8 +51,7 @@ class Report(Base):
 class SampleData(Base):
     __tablename__ = "sample_data"
 
-    id = Column(Integer, primary_key=True)
-    sample_id = Column(String(30), unique=True, index=True)
+    id = Column(Integer, unique=True, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     Sentrix_ID = Column(String(12))
     Sentrix_Position = Column(String(6))
