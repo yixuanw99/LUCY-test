@@ -19,7 +19,7 @@ class SampleData(SampleDataBase):
     report_id: int | None = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class SampleDataInDB(SampleData):
     pass

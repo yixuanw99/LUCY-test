@@ -2,6 +2,7 @@
 from pydantic import BaseModel, EmailStr
 from datetime import date
 from typing import List, Optional
+from .report import Report
 
 class UserBase(BaseModel):
     name: str
@@ -22,7 +23,7 @@ class UserInDBBase(UserBase):
     is_admin: bool = False
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class User(UserInDBBase):
     pass
@@ -31,4 +32,6 @@ class UserInDB(UserInDBBase):
     hashed_password: str
 
 class UserWithReports(User):
-    reports: List["Report"] = []
+    reports: List[Report] = []
+
+UserWithReports.model_rebuild()

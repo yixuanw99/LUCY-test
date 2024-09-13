@@ -55,7 +55,7 @@ class Report(ReportBase):
     cancer_pace_risk: float
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class ReportWithUser(Report):
     user: "User"
@@ -66,6 +66,5 @@ class ReportWithSample(Report):
 from .user import User
 from .sample import SampleData
 
-ReportWithUser.update_forward_refs()
-ReportWithSample.update_forward_refs()
-UserWithReports.update_forward_refs()
+ReportWithUser.model_rebuild()
+ReportWithSample.model_rebuild()
