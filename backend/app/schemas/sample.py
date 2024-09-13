@@ -21,7 +21,6 @@ class SampleData(SampleDataBase):
     id: int
     processed_beta_table_path: str
     cell_proportion_path: str
-    report_id: int | None = None
 
     class Config:
         from_attributes = True

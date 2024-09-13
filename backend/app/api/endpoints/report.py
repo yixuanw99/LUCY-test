@@ -45,14 +45,14 @@ def get_user_reports(
     reports = db.query(models.Report).filter(models.Report.user_id == current_user.id).offset(skip).limit(limit).all()
     return reports
 
-@router.get("/admin/reports", response_model=List[report_schema.Report])
-def get_all_reports(
-    skip: int = 0, 
-    limit: int = 100, 
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
-    if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Not authorized to access all reports")
-    reports = db.query(models.Report).offset(skip).limit(limit).all()
-    return reports
+# @router.get("/admin/reports", response_model=List[report_schema.Report])
+# def get_all_reports(
+#     skip: int = 0, 
+#     limit: int = 100, 
+#     db: Session = Depends(get_db),
+#     current_user: User = Depends(get_current_active_user)
+# ):
+#     if not current_user.is_admin:
+#         raise HTTPException(status_code=403, detail="Not authorized to access all reports")
+#     reports = db.query(models.Report).offset(skip).limit(limit).all()
+#     return reports
