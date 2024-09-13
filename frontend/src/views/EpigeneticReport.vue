@@ -120,8 +120,8 @@ export default {
             },
             diseaseRisks: 
             [
-                { allcausedeadHigher: 8, heartdiseaseHigher: 4, diabetesHigher: 6, dementiaHigher: 5, cancerHigher: 12 },
-                { allcausedeadWhenyoung1: 4, heartdiseaseWhenyoung1: 2, diabetesWhenyoung1: 1, dementiaWhenyoung1: 3, cancerWhenyoung1: 6 }
+                { acmHorvathRisk: 8, cvdHorvathRisk: 4, dmHorvathRisk: 6, adHorvathRisk: 5, cancerHorvathRisk: 12 },
+                { acmPaceRisk: 4, cvdPaceRisk: 2, dmPaceRisk: 1, adPaceRisk: 3, cancerPaceRisk: 6 }
             ]
         }
     },
@@ -148,23 +148,23 @@ export default {
             this.pacePr = Math.round((Math.random() * (74 - 45) + 45) * 100) / 100;
 
             // Update diseaseRisks with new random values
-            const higherRisks = {
-                allcausedeadHigher: Math.floor(Math.random() * 12),
-                heartdiseaseHigher: Math.floor(Math.random() * 12),
-                diabetesHigher: Math.floor(Math.random() * 12),
-                dementiaHigher: Math.floor(Math.random() * 12),
-                cancerHigher: Math.floor(Math.random() * 12)
+            const horvathRisks = {
+                acmHorvathRisk: Math.floor(Math.random() * 12),
+                cvdHorvathRisk: Math.floor(Math.random() * 12),
+                dmHorvathRisk: Math.floor(Math.random() * 12),
+                adHorvathRisk: Math.floor(Math.random() * 12),
+                cancerHorvathRisk: Math.floor(Math.random() * 12)
             };
 
-            const youngRisks = {
-                allcausedeadWhenyoung1: Math.floor(Math.random() * (higherRisks.allcausedeadHigher + 1)),
-                heartdiseaseWhenyoung1: Math.floor(Math.random() * (higherRisks.heartdiseaseHigher + 1)),
-                diabetesWhenyoung1: Math.floor(Math.random() * (higherRisks.diabetesHigher + 1)),
-                dementiaWhenyoung1: Math.floor(Math.random() * (higherRisks.dementiaHigher + 1)),
-                cancerWhenyoung1: Math.floor(Math.random() * (higherRisks.cancerHigher + 1))
+            const paceRisks = {
+                acmPaceRisk: Math.floor(Math.random() * (horvathRisks.acmHorvathRisk + 1)),
+                cvdPaceRisk: Math.floor(Math.random() * (horvathRisks.cvdHorvathRisk + 1)),
+                dmPaceRisk: Math.floor(Math.random() * (horvathRisks.dmHorvathRisk + 1)),
+                adPaceRisk: Math.floor(Math.random() * (horvathRisks.adHorvathRisk + 1)),
+                cancerPaceRisk: Math.floor(Math.random() * (horvathRisks.cancerHorvathRisk + 1))
             };
 
-            this.diseaseRisks = [higherRisks, youngRisks];
+            this.diseaseRisks = [horvathRisks, paceRisks];
         }
     }
 }

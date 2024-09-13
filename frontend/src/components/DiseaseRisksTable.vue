@@ -31,11 +31,11 @@
     computed: {
       risks() {
         return [
-          { name: '全因死亡率', relative: this.diseaseRisks[0].allcausedeadHigher, absolute: this.diseaseRisks[1].allcausedeadWhenyoung1 },
-          { name: '心血管疾病', relative: this.diseaseRisks[0].heartdiseaseHigher, absolute: this.diseaseRisks[1].heartdiseaseWhenyoung1 },
-          { name: '糖尿病風險', relative: this.diseaseRisks[0].diabetesHigher, absolute: this.diseaseRisks[1].diabetesWhenyoung1 },
-          { name: '失智風險', relative: this.diseaseRisks[0].dementiaHigher, absolute: this.diseaseRisks[1].dementiaWhenyoung1 },
-          { name: '癌症風險', relative: this.diseaseRisks[0].cancerHigher, absolute: this.diseaseRisks[1].cancerWhenyoung1 }
+          { name: '全因死亡率', relative: this.diseaseRisks[0].acmHorvathRisk, absolute: this.diseaseRisks[1].acmPaceRisk },
+          { name: '心血管疾病', relative: this.diseaseRisks[0].cvdHorvathRisk, absolute: this.diseaseRisks[1].cvdPaceRisk },
+          { name: '糖尿病風險', relative: this.diseaseRisks[0].dmHorvathRisk, absolute: this.diseaseRisks[1].dmPaceRisk },
+          { name: '失智風險', relative: this.diseaseRisks[0].adHorvathRisk, absolute: this.diseaseRisks[1].adPaceRisk },
+          { name: '癌症風險', relative: this.diseaseRisks[0].cancerHorvathRisk, absolute: this.diseaseRisks[1].cancerPaceRisk }
         ];
       }
     }

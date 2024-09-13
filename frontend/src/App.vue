@@ -58,14 +58,14 @@ export default {
     .logo {
         width: 50px;
         height: auto;
-        margin-right: 5px; /* 添加一些右边距 */
+        margin-right: 5px; /* 添加一些右邊距 */
     }
 
     .logo-text {
         color: #343434;
         font-family: "Nova Mono", sans-serif;
-        font-size: 32px; /* 调整字体大小 */
-        margin: 0; /* 移除默认边距 */
+        font-size: 32px; /* 調整字體大小 */
+        margin: 0; /* 移除默認邊距 */
     }
 
     .header-info {

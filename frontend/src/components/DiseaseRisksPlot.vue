@@ -4,11 +4,11 @@
         <!-- 背景多邊形 -->
         <polygon :points="backgroundPoints" fill="none" stroke="#ccc" />
                 
-        <!-- 數據多邊形 - 當前風險 -->
-        <polygon :points="currentRiskPoints" fill="rgba(75, 192, 192, 0.2)" stroke="rgba(75, 192, 192, 1)" />
+        <!-- 數據多邊形 - 基礎風險 -->
+        <polygon :points="horvathRiskPoints" fill="rgba(75, 192, 192, 0.2)" stroke="rgba(75, 192, 192, 1)" />
         
-        <!-- 數據多邊形 - 若年輕一歲 -->
-        <polygon :points="youngerRiskPoints" fill="rgba(54, 162, 235, 0.2)" stroke="rgba(54, 162, 235, 1)" />
+        <!-- 數據多邊形 - 當前風險 -->
+        <polygon :points="paceRiskPoints" fill="rgba(54, 162, 235, 0.2)" stroke="rgba(54, 162, 235, 1)" />
         
         <!-- 軸標籤 -->
         <text
@@ -61,23 +61,23 @@
       backgroundPoints() {
         return this.calculatePoints(this.maxValue)
       },
-      currentRiskPoints() {
+      horvathRiskPoints() {
         const values = [
-          this.diseaseRisks[0].allcausedeadHigher,
-          this.diseaseRisks[0].heartdiseaseHigher,
-          this.diseaseRisks[0].diabetesHigher,
-          this.diseaseRisks[0].dementiaHigher,
-          this.diseaseRisks[0].cancerHigher
+          this.diseaseRisks[0].acmHorvathRisk,
+          this.diseaseRisks[0].cvdHorvathRisk,
+          this.diseaseRisks[0].dmHorvathRisk,
+          this.diseaseRisks[0].adHorvathRisk,
+          this.diseaseRisks[0].cancerHorvathRisk
         ]
         return this.calculatePoints(values)
       },
-      youngerRiskPoints() {
+      paceRiskPoints() {
         const values = [
-          this.diseaseRisks[1].allcausedeadWhenyoung1,
-          this.diseaseRisks[1].heartdiseaseWhenyoung1,
-          this.diseaseRisks[1].diabetesWhenyoung1,
-          this.diseaseRisks[1].dementiaWhenyoung1,
-          this.diseaseRisks[1].cancerWhenyoung1
+          this.diseaseRisks[1].acmPaceRisk,
+          this.diseaseRisks[1].cvdPaceRisk,
+          this.diseaseRisks[1].dmPaceRisk,
+          this.diseaseRisks[1].adPaceRisk,
+          this.diseaseRisks[1].cancerPaceRisk
         ]
         return this.calculatePoints(values)
       }

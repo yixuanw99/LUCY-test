@@ -20,16 +20,16 @@ class Report(Base):
     older_younger_comment = Column(String)
     
     # Disease risks
-    allcausedead_higher = Column(Integer)
-    heartdisease_higher = Column(Integer)
-    diabetes_higher = Column(Integer)
-    dementia_higher = Column(Integer)
-    cancer_higher = Column(Integer)
-    allcausedead_whenyoung1 = Column(Integer)
-    heartdisease_whenyoung1 = Column(Integer)
-    diabetes_whenyoung1 = Column(Integer)
-    dementia_whenyoung1 = Column(Integer)
-    cancer_whenyoung1 = Column(Integer)
+    acm_horvath_risk = Column(Integer) # acm = all cause mortality
+    cvd_horvath_risk = Column(Integer) # cvd = cardiovascular disease
+    dm_horvath_risk = Column(Integer) # dm = diabetes mellitus
+    ad_horvath_risk = Column(Integer) # ad = alzheimer's disease
+    cancer_horvath_risk = Column(Integer) # cancer
+    acm_pace_risk = Column(Integer)
+    cvd_pace_risk = Column(Integer)
+    dm_pace_risk = Column(Integer)
+    ad_pace_risk = Column(Integer)
+    cancer_pace_risk = Column(Integer)
 
     sample = relationship("Sample", back_populates="report")
 
