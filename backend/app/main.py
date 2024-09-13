@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from app.api.endpoints import report, sample, user
@@ -21,7 +22,20 @@ print(f"Debug mode: {settings.DEBUG}")
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    description="developed by yixuanw99",
+    version="1.0.0"
+)
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://127.0.0.1:8080", "http://localhost:8080"],  # 允許的前端源
+    allow_credentials=True,
+    allow_methods=["*"],  # 允許所有方法
+    allow_headers=["*"],  # 允許所有頭
+)
 
 @app.exception_handler(ValidationError)
 async def validation_exception_handler(request, exc):

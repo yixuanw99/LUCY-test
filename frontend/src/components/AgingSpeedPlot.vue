@@ -54,7 +54,7 @@
         const points = [];
         for (let x = 0; x <= 2; x += 0.05) {
             const y = this.normalDistribution(x);
-            points.push([this.xScale(x), 250 - y * 80]);
+            points.push([this.xScale(x), 250 - y * 40]);
         }
         return 'M' + points.map(p => p.join(',')).join('L');
         }

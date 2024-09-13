@@ -4,8 +4,8 @@
         <thead>
           <tr class="bg-gray-100">
             <th class="py-2 px-4 border-b text-left">疾病風險</th>
-            <th class="py-2 px-4 border-b text-left">與同齡相比的風險程度(%)</th>
-            <th class="py-2 px-4 border-b text-left">生物年齡每年輕1年可降低風險(%)</th>
+            <th class="py-2 px-4 border-b text-left">基礎風險(horvath)(%)</th>
+            <th class="py-2 px-4 border-b text-left">當前風險(pace)(%)</th>
           </tr>
         </thead>
         <tbody>

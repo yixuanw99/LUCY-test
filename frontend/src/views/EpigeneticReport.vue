@@ -16,70 +16,66 @@
             </div>
         </div>
 
-        <div class="section">
-            <div class="section-title">
-                <h2>生物年齡</h2>
-                <a class="cta" :href="'https://www.facebook.com/sharer.php?u=' + epigeneticClock_fig_url">
-                    <img alt="share_button" src="@/assets/share_button.png" width="20">
-                </a>
-            </div>
-            <hr width="100%" size="3" color="#80c2ec" style="margin-top: 0px;">
-            <div class="section-content">
-                <div class="section-text">
-                    <p>表觀遺傳時鐘是一種根據DNA甲基化水平來預測生物年齡的工具。根據你的表觀基因，你的生物年齡為{{bioAge}}歲，比你的實際年齡{{olderYounger}}{{diffAge}}歲。</p>
-                    <p>{{ olderYoungerComment }}</p>
+        <div class="input-section">
+            <input v-model="inputSampleId" placeholder="輸入樣本ID" />
+            <button @click="fetchReport">獲取報告</button>
+        </div>
+
+        <div v-if="reportData">
+            <div class="section">
+                <div class="section-title">
+                    <h2>生物年齡</h2>
+                    <a class="cta" :href="'https://www.facebook.com/sharer.php?u=' + epigeneticClock_fig_url">
+                        <img alt="share_button" src="@/assets/share_button.png" width="20">
+                    </a>
                 </div>
-                <div class="section-figure">
-                    <GaugeChart :bio-age="bioAge" :chro-age="chroAge" />
+                <hr width="100%" size="3" color="#80c2ec" style="margin-top: 0px;">
+                <div class="section-content">
+                    <div class="section-text">
+                        <p>表觀遺傳時鐘是一種根據DNA甲基化水平來預測生物年齡的工具。根據你的表觀基因，你的生物年齡為{{bioAge}}歲，比你的實際年齡{{olderYounger}}{{diffAge}}歲。</p>
+                        <p>{{ olderYoungerComment }}</p>
+                    </div>
+                    <div class="section-figure">
+                        <GaugeChart :bio-age="bioAge" :chro-age="chroAge" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">
+                    <h2>老化速度</h2>
+                    <a class="cta" :href="'https://www.facebook.com/sharer.php?u=' + agingSpeed_fig_url">
+                        <img alt="share_button" src="@/assets/share_button.png" width="20">
+                    </a>
+                </div>
+                <hr width="100%" size="3" color="#80c2ec" style="margin-top: 0px;">
+                <div class="section-content">
+                    <div class="section-text">
+                        <p>你的老化速度為{{ paceValue }}，比{{ pacePrInverse }}％同齡的人老得慢。</p>
+                        <P>代表平均一個人老1.0年，你的身體老了{{paceValue}}年。數值越低，代表老化速度越慢。</p>
+                    </div>
+                    <div class="section-figure">
+                        <AgingSpeedPlot :pace-value="paceValue" :pace-pr="pacePrInverse" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">
+                    <h2>老化疾病風險評估</h2>
+                    <a class="cta" :href="'https://www.facebook.com/sharer.php?u=' + diseaseRisks_fig_url">
+                        <img alt="share_button" src="@/assets/share_button.png" width="20">
+                    </a>
+                </div>
+                <hr width="100%" size="3" color="#80c2ec" style="margin-top: 0px;">
+                <div class="section-content">
+                    <div class="section-figure">
+                        <disease-risks-table :disease-risks="diseaseRisks"></disease-risks-table>
+                        <disease-risks-plot :disease-risks="diseaseRisks"></disease-risks-plot>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <div class="section">
-            <div class="section-title">
-                <h2>老化速度</h2>
-                <!-- TODO unavailable link-->
-                <a class="cta" :href="'https://www.facebook.com/sharer.php?u=' + agingSpeed_fig_url">
-                    <img alt="share_button" src="@/assets/share_button.png" width="20">
-                </a>
-            </div>
-            <hr width="100%" size="3" color="#80c2ec" style="margin-top: 0px;">
-            <div class="section-content">
-                <div class="section-text">
-                    <p>你的老化速度為{{ paceValue }}，比{{ pacePr }}％同齡的人老得慢。</p>
-                    <P>代表平均一個人老1.0年，你的身體老了{{paceValue}}年。數值越低，代表老化速度越慢。</p>
-                </div>
-                <div class="section-figure">
-                    <AgingSpeedPlot :pace-value="paceValue" :pace-pr="pacePr" />
-                </div>
-            </div>
-        </div>
-
-        <div class="section">
-            <div class="section-title">
-                <h2>老化疾病風險評估</h2>
-                <!-- TODO unavailable link-->
-                <a class="cta" :href="'https://www.facebook.com/sharer.php?u=' + diseaseRisks_fig_url">
-                    <img alt="share_button" src="@/assets/share_button.png" width="20">
-                </a>
-            </div>
-            <hr width="100%" size="3" color="#80c2ec" style="margin-top: 0px;">
-            <div class="section-content">
-                <!-- <div class="section-text">
-                    <ul>
-                        <li v-for="risk in diseaseRisks" :key="risk.name">
-                            {{ risk.name }}: {{ risk.description }}
-                        </li>
-                    </ul>
-                </div> -->
-                <div class="section-figure">
-                    <disease-risks-table :disease-risks="diseaseRisks"></disease-risks-table>
-                    <disease-risks-plot :disease-risks="diseaseRisks"></disease-risks-plot>
-                </div>
-            </div>
-        </div>
-
-        <button @click="updateAges">隨機產生數據</button>
     </div>
 </template>
 
@@ -88,6 +84,7 @@ import GaugeChart from '@/components/GaugeChart.vue'
 import AgingSpeedPlot from '@/components/AgingSpeedPlot.vue'
 import DiseaseRisksTable from '@/components/DiseaseRisksTable.vue'
 import DiseaseRisksPlot from '@/components/DiseaseRisksPlot.vue'
+import axios from 'axios'
 
 export default {
     name: 'EpigeneticReport',
@@ -99,30 +96,25 @@ export default {
     },
     data() {
         return {
-            bioAge: 70.96,
-            chroAge: 58.54,
-            paceValue: 0.82,
-            pacePr: 65,
+            inputSampleId: '',
+            reportData: null,
             info: {
-                name: '吳亦烜',
-                sampleId: 'A7S1',
-                collectionDate: '2024/06/31',
-                reportDate: '2024/09/01'
+                name: '',
+                sampleId: '',
+                collectionDate: '',
+                reportDate: ''
             },
-            epigeneticClock: {
-                diffAge: 0,
-                olderYounger: '',
-                olderYoungerComment: ''
-            },
-            agingSpeed: {
-                // deprecated
-                pacePositive: '',
-            },
-            diseaseRisks: 
-            [
-                { acmHorvathRisk: 8, cvdHorvathRisk: 4, dmHorvathRisk: 6, adHorvathRisk: 5, cancerHorvathRisk: 12 },
-                { acmPaceRisk: 4, cvdPaceRisk: 2, dmPaceRisk: 1, adPaceRisk: 3, cancerPaceRisk: 6 }
-            ]
+            bioAge: 0,
+            chroAge: 0,
+            paceValue: 0,
+            pacePr: 0,
+            diseaseRisks: [
+                { acmHorvathRisk: 0, cvdHorvathRisk: 0, dmHorvathRisk: 0, adHorvathRisk: 0, cancerHorvathRisk: 0 },
+                { acmPaceRisk: 0, cvdPaceRisk: 0, dmPaceRisk: 0, adPaceRisk: 0, cancerPaceRisk: 0 }
+            ],
+            epigeneticClock_fig_url: '',
+            agingSpeed_fig_url: '',
+            diseaseRisks_fig_url: ''
         }
     },
     computed: {
@@ -135,41 +127,78 @@ export default {
         olderYoungerComment() {
             return this.bioAge < this.chroAge ? '恭喜你！代表跟同年齡的相比，統計上你有更長的餘命。' : '糟糕了！與同齡人相比起來統計上有較短的餘命。';
         },
-        pacePositive() {
-            return this.paceValue < 1 ? '慢' : '快';
+        pacePrInverse() {
+            return 100 - this.pacePr;
         }
     },
     methods: {
-        updateAges() {
-            // Randomly generate new ages
-            this.bioAge = Math.round((Math.random() * (74 - 45) + 45) * 100) / 100;
-            this.chroAge = Math.round((Math.random() * (74 - 45) + 45) * 100) / 100;
-            this.paceValue = Math.round((Math.random() * (1.4 - 0.6) + 0.6) * 100) / 100;
-            this.pacePr = Math.round((Math.random() * (74 - 45) + 45) * 100) / 100;
-
-            // Update diseaseRisks with new random values
-            const horvathRisks = {
-                acmHorvathRisk: Math.floor(Math.random() * 12),
-                cvdHorvathRisk: Math.floor(Math.random() * 12),
-                dmHorvathRisk: Math.floor(Math.random() * 12),
-                adHorvathRisk: Math.floor(Math.random() * 12),
-                cancerHorvathRisk: Math.floor(Math.random() * 12)
-            };
-
-            const paceRisks = {
-                acmPaceRisk: Math.floor(Math.random() * (horvathRisks.acmHorvathRisk + 1)),
-                cvdPaceRisk: Math.floor(Math.random() * (horvathRisks.cvdHorvathRisk + 1)),
-                dmPaceRisk: Math.floor(Math.random() * (horvathRisks.dmHorvathRisk + 1)),
-                adPaceRisk: Math.floor(Math.random() * (horvathRisks.adHorvathRisk + 1)),
-                cancerPaceRisk: Math.floor(Math.random() * (horvathRisks.cancerHorvathRisk + 1))
-            };
-
-            this.diseaseRisks = [horvathRisks, paceRisks];
+        async fetchReport() {
+            try {
+                const response = await axios.get(`http://127.0.0.1:8000/report/${this.inputSampleId}`);
+                this.reportData = response.data;
+                this.updateReportData();
+            } catch (error) {
+                console.error('Error fetching report:', error);
+                // 在這裡處理錯誤，例如顯示錯誤消息給用戶
+            }
+        },
+        updateReportData() {
+            if (this.reportData) {
+                this.info.name = this.reportData.user_id;
+                this.info.sampleId = this.reportData.sample_id;
+                this.info.collectionDate = this.reportData.collection_date;
+                this.info.reportDate = this.reportData.report_date;
+                this.bioAge = this.reportData.bio_age;
+                this.chroAge = this.reportData.chro_age;
+                this.paceValue = this.reportData.pace_value;
+                this.pacePr = this.reportData.pace_pr;
+                this.diseaseRisks = [
+                    {
+                        acmHorvathRisk: this.reportData.acm_horvath_risk,
+                        cvdHorvathRisk: this.reportData.cvd_horvath_risk,
+                        dmHorvathRisk: this.reportData.dm_horvath_risk,
+                        adHorvathRisk: this.reportData.ad_horvath_risk,
+                        cancerHorvathRisk: this.reportData.cancer_horvath_risk
+                    },
+                    {
+                        acmPaceRisk: this.reportData.acm_pace_risk,
+                        cvdPaceRisk: this.reportData.cvd_pace_risk,
+                        dmPaceRisk: this.reportData.dm_pace_risk,
+                        adPaceRisk: this.reportData.ad_pace_risk,
+                        cancerPaceRisk: this.reportData.cancer_pace_risk
+                    }
+                ];
+            }
         }
     }
 }
 </script>
 
 <style scoped>
-/* Add any component-specific styles here */
+.input-section {
+    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.input-section input {
+    padding: 5px 10px;
+    font-size: 16px;
+}
+
+.input-section button {
+    padding: 5px 15px;
+    font-size: 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.input-section button:hover {
+    background-color: #45a049;
+}
+
+/* 其他現有的樣式... */
 </style>
