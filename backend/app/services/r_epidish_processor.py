@@ -6,6 +6,17 @@ import subprocess
 import json
 from dotenv import load_dotenv
 from pathlib import Path
+import sys
+
+project_root = Path(__file__).resolve().parents[2]
+sys.path.append(str(project_root))
+
+# print(f"Project root: {project_root}")
+# print(f"Python path: {sys.path}")
+# print(f"Current working directory: {os.getcwd()}")
+
+from app.db import models
+from app.db.session import SessionLocal
 
 class EpiDISHProcessor:
     def __init__(self):
@@ -75,7 +86,7 @@ class EpiDISHProcessor:
 
     def save_cell_proportions(self, cell_proportions: pd.DataFrame, batch_name: str) -> str:
         '''
-        保存細胞比例數據到 CSV 文件
+        保存細胞比例數據到 CSV 文件並更新數據庫
         
         :param cell_proportions: 細胞比例的 DataFrame
         :param batch_name: 樣本名稱，用於生成文件名
@@ -85,29 +96,59 @@ class EpiDISHProcessor:
         output_file = cell_proportions_dir / f"{batch_name}_cell_proportions.csv"
         cell_proportions.to_csv(output_file, index=True)
         self.logger.info(f"Cell proportions saved to {output_file}")
-        return output_file.relative_to(self.backend_root).as_posix()
+        relative_path = output_file.relative_to(self.backend_root).as_posix()
+        
+        # Update database
+        db = SessionLocal()
+        try:
+            # 獲取所有 sample_name
+            sample_names = cell_proportions.index.tolist()
+            
+            # 批量查詢 sample_id
+            samples = db.query(models.SampleData).filter(models.SampleData.sample_name.in_(sample_names)).all()
+            
+            # 創建 sample_name 到 sample 對象的映射
+            sample_map = {sample.sample_name: sample for sample in samples}
+            
+            # 更新每個樣本的 cell_proportion_path
+            for sample_name in sample_names:
+                sample = sample_map.get(sample_name)
+                if sample:
+                    sample.cell_proportion_path = relative_path
+                else:
+                    self.logger.warning(f"Sample with name {sample_name} not found in database")
+            
+            db.commit()
+            self.logger.info(f"Updated cell_proportion_path for {len(samples)} samples")
+        except Exception as e:
+            db.rollback()
+            self.logger.error(f"Error updating database: {str(e)}")
+        finally:
+            db.close()
+        
+        return relative_path
 
 
 if __name__ == "__main__":
-    import argparse
+    # import argparse
 
-    parser = argparse.ArgumentParser(description="Process CSV file with EpiDISH")
-    parser.add_argument("csv_file_path", help="Path to the CSV file containing methylation data")
-    parser.add_argument("--batch_name", help="Name of the batch for output file", required=True)
-    args = parser.parse_args()
+    # parser = argparse.ArgumentParser(description="Process CSV file with EpiDISH")
+    # parser.add_argument("csv_file_path", help="Path to the CSV file containing methylation data")
+    # parser.add_argument("--batch_name", help="Name of the batch for output file", required=True)
+    # args = parser.parse_args()
 
     processor = EpiDISHProcessor()
 
     try:
         # 示例用法
         # python app/services/r_epidish_processor.py "data/processed_beta_table/our_all_samples_normed_processed.csv" --batch_name our_all_samples
-        result = processor.run_epidish_with_csv(args.csv_file_path)
+        result = processor.run_epidish_with_csv("data/processed_beta_table/our_all_samples_normed_processed.csv")
         if isinstance(result, pd.DataFrame):
             print("Processing completed. Sample of cell proportions:")
             print(result.head())
             print(f"\nTotal number of samples: {len(result)}")
             
-            relative_path = processor.save_cell_proportions(result, args.batch_name)
+            relative_path = processor.save_cell_proportions(result, "our_all_samples")
             print(f"Cell proportions saved. Relative path: {relative_path}")
         else:
             print("Processing did not return a DataFrame.")

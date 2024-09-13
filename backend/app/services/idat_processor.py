@@ -6,6 +6,12 @@ import subprocess
 import json
 from dotenv import load_dotenv
 from pathlib import Path
+import sys
+project_root = Path(__file__).resolve().parents[2]
+sys.path.append(str(project_root))
+from app.db.session import SessionLocal
+from app.db import models
+
 
 class IDATProcessor:
     def __init__(self):
@@ -92,7 +98,7 @@ class IDATProcessor:
 
     def save_processed_data(self, beta_table_rmdup: pd.DataFrame, batch_name: str) -> str:
         '''
-        保存處理後的數據到 CSV 文件
+        保存處理後的數據到 CSV 文件並更新數據庫
         
         :param beta_table_rmdup: 處理後的 DataFrame
         :param batch_name: 樣本名稱，用於生成文件名
@@ -102,7 +108,37 @@ class IDATProcessor:
         output_file = processed_beta_table_dir / f"{batch_name}_processed.csv"
         beta_table_rmdup.to_csv(output_file, index=True)
         self.logger.info(f"Processed data saved to {output_file}")
-        return output_file.relative_to(self.backend_root).as_posix()
+        relative_path = output_file.relative_to(self.backend_root).as_posix()
+        
+        # Update database
+        db = SessionLocal()
+        try:
+            # 獲取所有 sample_name
+            sample_names = beta_table_rmdup.columns.tolist()
+            
+            # 批量查詢 sample_id
+            samples = db.query(models.SampleData).filter(models.SampleData.sample_name.in_(sample_names)).all()
+            
+            # 創建 sample_name 到 sample 對象的映射
+            sample_map = {sample.sample_name: sample for sample in samples}
+            
+            # 更新每個樣本的 processed_beta_table_path
+            for sample_name in sample_names:
+                sample = sample_map.get(sample_name)
+                if sample:
+                    sample.processed_beta_table_path = relative_path
+                else:
+                    self.logger.warning(f"Sample with name {sample_name} not found in database")
+            
+            db.commit()
+            self.logger.info(f"Updated processed_beta_table_path for {len(samples)} samples")
+        except Exception as e:
+            db.rollback()
+            self.logger.error(f"Error updating database: {str(e)}")
+        finally:
+            db.close()
+        
+        return relative_path
 
 
 if __name__ == "__main__":
