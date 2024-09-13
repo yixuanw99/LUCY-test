@@ -53,6 +53,7 @@ class SampleData(Base):
 
     id = Column(Integer, unique=True, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    sample_name = Column(String(255))
     Sentrix_ID = Column(String(12))
     Sentrix_Position = Column(String(6))
     idat_file = Column(String(255))

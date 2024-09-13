@@ -20,10 +20,23 @@ def get_all_samples(skip: int = 0, limit: int = 100, db: Session = Depends(get_d
     samples = db.query(models.SampleData).offset(skip).limit(limit).all()
     return samples
 
-@router.post("/sample", response_model=sample_schema.SampleData)
-def create_sample(sample: sample_schema.SampleDataCreate, db: Session = Depends(get_db)):
-    db_sample = models.SampleData(**sample.dict())
-    db.add(db_sample)
-    db.commit()
-    db.refresh(db_sample)
-    return db_sample
+# @router.post("/sample", response_model=sample_schema.SampleData)
+# def create_sample(sample: sample_schema.SampleDataCreate, db: Session = Depends(get_db)):
+#     # Check if a sample with the same user_id, Sentrix_ID, and Sentrix_Position already exists
+#     existing_sample = db.query(models.SampleData).filter(
+#         models.SampleData.user_id == sample.user_id,
+#         models.SampleData.Sentrix_ID == sample.Sentrix_ID,
+#         models.SampleData.Sentrix_Position == sample.Sentrix_Position
+#     ).first()
+    
+#     if existing_sample:
+#         raise HTTPException(
+#             status_code=400, 
+#             detail="Sample with this user_id, Sentrix_ID, and Sentrix_Position combination already exists"
+#         )
+    
+#     db_sample = models.SampleData(**sample.model_dump())
+#     db.add(db_sample)
+#     db.commit()
+#     db.refresh(db_sample)
+#     return db_sample

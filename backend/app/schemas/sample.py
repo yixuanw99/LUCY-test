@@ -3,19 +3,24 @@ from pydantic import BaseModel
 from datetime import date
 
 class SampleDataBase(BaseModel):
-    sample_id: str
     user_id: int
+    sample_name: str
     Sentrix_ID: str
     Sentrix_Position: str
     idat_file: str
-    processed_beta_table_path: str
-    cell_proportion_path: str
+
 
 class SampleDataCreate(SampleDataBase):
-    pass
+    user_id: int
+    sample_name: str
+    Sentrix_ID: str
+    Sentrix_Position: str
+    idat_file: str
 
 class SampleData(SampleDataBase):
     id: int
+    processed_beta_table_path: str
+    cell_proportion_path: str
     report_id: int | None = None
 
     class Config:
