@@ -1,5 +1,6 @@
 # backend/app/db/models.py
-from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, Float, Date, ForeignKey
+from sqlalchemy_utils.types.encrypted.encrypted_type import StringEncryptedType
 from sqlalchemy.orm import relationship
 from .base import Base
 
@@ -8,8 +9,12 @@ class User(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False)
+    email = Column(String(255), unique=True, index=True, nullable=False)
+    hashed_password = Column(StringEncryptedType(String, length=255, key='abc'), nullable=False)
     birthday = Column(Date)
     phone_number = Column(String(10))
+    is_active = Column(Boolean, default=True)
+    is_admin = Column(Boolean, default=False)
     
     # 關係
     reports = relationship("Report", back_populates="user")
@@ -20,7 +25,7 @@ class Report(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    sample_id = Column(String(30), ForeignKey("sample_data.sample_id"), unique=True)
+    sample_id = Column(String(30), ForeignKey("sample_data.sample_id"), unique=True, nullable=True)
     collection_date = Column(Date)
     report_date = Column(Date)
     bio_age = Column(Float)
@@ -40,7 +45,7 @@ class Report(Base):
     ad_pace_risk = Column(Float)
     cancer_pace_risk = Column(Float)
 
-    sample_data = relationship("SampleData", back_populates="report", uselist=False)
+    sample_data = relationship("SampleData", back_populates="report", uselist=False, foreign_keys=[sample_id])
     user = relationship("User", back_populates="reports")
 
 class SampleData(Base):
@@ -49,7 +54,6 @@ class SampleData(Base):
     id = Column(Integer, primary_key=True)
     sample_id = Column(String(30), unique=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    report_id = Column(Integer, ForeignKey('reports.id'), nullable=False)
     Sentrix_ID = Column(String(12))
     Sentrix_Position = Column(String(6))
     idat_file = Column(String(255))
