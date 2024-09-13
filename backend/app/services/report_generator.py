@@ -161,6 +161,7 @@ if __name__ == "__main__":
     setup_logging()
     
     # Example metadata
+    # TODO: Replace with user.age and user.sex
     metadata = {
         'age': [42, 42, 43, 43, 43, 28, 28, 28, 42, 42, 43, 43, 43, 28, 28, 28],
         'sex': [2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1]
