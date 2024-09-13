@@ -25,7 +25,7 @@ class Report(Base):
 
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    sample_id = Column(Integer, ForeignKey("sample_data.id"), nullable=False)
+    sample_id = Column(Integer, ForeignKey("sample_data.id"), nullable=False, unique=True, index=True)
     collection_date = Column(Date)
     report_date = Column(Date)
     bio_age = Column(Float)
