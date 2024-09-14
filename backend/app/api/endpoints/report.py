@@ -51,6 +51,15 @@ def get_user_reports(
     reports = db.query(models.Report).filter(models.Report.user_id == user_id).offset(skip).limit(limit).all()
     return reports
 
+@router.get("/all_reports", response_model=List[report_schema.Report])
+def get_all_reports(
+    skip: int = 0, 
+    limit: int = 100, 
+    db: Session = Depends(get_db)
+):
+    reports = db.query(models.Report).offset(skip).limit(limit).all()
+    return reports
+
 # @router.get("/admin/reports", response_model=List[report_schema.Report])
 # def get_all_reports(
 #     skip: int = 0, 

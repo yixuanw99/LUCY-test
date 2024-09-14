@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
 from pydantic import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from app.api.endpoints import report, sample, user
@@ -36,6 +37,14 @@ app.add_middleware(
     allow_methods=["*"],  # 允許所有方法
     allow_headers=["*"],  # 允許所有頭
 )
+
+@app.get("/openapi.json", include_in_schema=False)
+async def get_openapi_json():
+    return JSONResponse(get_openapi(
+        title="Your API",
+        version="1.0.0",
+        routes=app.routes,
+    ))
 
 @app.exception_handler(ValidationError)
 async def validation_exception_handler(request, exc):
