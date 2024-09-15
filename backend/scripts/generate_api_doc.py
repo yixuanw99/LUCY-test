@@ -156,6 +156,6 @@ openapi_json_path = 'D:/Downloads/openapi.json'
 output_pdf_path = 'D:/Downloads/api_documentation.pdf'
 generate_api_pdf(openapi_json_path, output_pdf_path)
 
-openapi_json_path = 'D:/Downloads/openapi_v3.0.3.json' # openapi的版本要改成3.0.n才能直接用html，所以另存了一個openapi_v3.0.3.json
+openapi_json_path = 'D:/Downloads/openapi_v3.0.3.json' # openapi的版本要改成3.0.n才能直接用html，所以另存了一個openapi_v3.0.3.json, 1.將 "openapi": "3.1.0" 改為 "openapi": "3.0.3" 2.對於可空字段（如 User 模式中的 phone_number 和 email），使用 "nullable": true 替代了 3.1.0 中的 anyOf 結構
 output_path = 'D:/Downloads/swagger-ui.html'
 generate_swagger_html(openapi_json_path, output_path)
