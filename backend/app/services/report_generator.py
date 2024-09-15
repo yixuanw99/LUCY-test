@@ -82,16 +82,16 @@ class ReportGenerator:
                     "chro_age": chro_age,
                     "pace_value": pace_value,
                     "pace_pr": pace_pr,
-                    "acm_horvath_risk": 4.6 * delta_age,
+                    "acm_horvath_risk": 4.6 * delta_age, # 以下risk已經乘過100，所以單位是%
                     "cvd_horvath_risk": 4.0 * delta_age,
                     "dm_horvath_risk": 8.0 * delta_age,
                     "ad_horvath_risk": 4.1 * delta_age,
                     "cancer_horvath_risk": 6.0 * delta_age,
-                    "acm_pace_risk": 1.95 * delta_pace,
-                    "cvd_pace_risk": 5.0 * delta_pace,
-                    "dm_pace_risk": 1.55 * delta_pace,
-                    "ad_pace_risk": 5.0 * delta_pace,
-                    "cancer_pace_risk": 5.0 * delta_pace
+                    "acm_pace_risk": 500 * delta_pace,
+                    "cvd_pace_risk": 195 * delta_pace,
+                    "dm_pace_risk": 155 * delta_pace,
+                    "ad_pace_risk": 500 * delta_pace,
+                    "cancer_pace_risk": 500 * delta_pace
                 }
             }
             reports.append(report)
