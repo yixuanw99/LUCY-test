@@ -5,20 +5,21 @@
     <line x1="50" :y1="height - 50" x2="350" :y2="height - 50" stroke="black" />
 
     <!-- 正態分佈曲線 -->
-    <path :d="normalDistributionPath" fill="#777777" stroke="none" />
+    <path :d="normalDistributionPath" fill="#a2def4" stroke="none" />
 
     <!-- X軸刻度 -->
     <g v-for="tick in xAxisTicks" :key="tick">
-      <line :x1="xScale(tick)" :y1="height - 50" :x2="xScale(tick)" :y2="height - 45" stroke="black" />
       <text :x="xScale(tick)" :y="height - 25" text-anchor="middle">{{ tick }}</text>
     </g>
 
     <!-- 標記線和文字 -->
     <line :x1="xScale(paceValue)" y1="90" :x2="xScale(paceValue)" :y2="height - 50" stroke="black" stroke-dasharray="5,5" />
+    <circle :cx="xScale(paceValue)" cy="90" r="3" fill="black" />
+    <circle :cx="xScale(paceValue)" cy="250" r="3" fill="black" />
+    <circle :cx="xScale(paceValue) + 165" cy="140" r="3" fill="black" />
+    <line :x1="xScale(paceValue)" y1="140" :x2="xScale(paceValue) + 165" :y2="140" stroke="black" stroke-dasharray="5,5" />
     <text :x="xScale(paceValue)" y="70" text-anchor="middle" font-weight="bold">{{ paceValue }}</text>
-    <text :x="180" :y="40" font-size="14" fill="black">
-      你比{{ pacePr }}%同齡的人老得慢
-    </text>
+    <text :x="xScale(paceValue) + 5" :y="130" font-size="14" fill="black">你比{{ pacePr }}%同齡的人老得慢</text>
 
     <!-- X軸標籤 -->
     <text x="200" :y="height - 5" text-anchor="middle">你的老化速度</text>
@@ -49,7 +50,7 @@ export default {
     }
   },
   setup (props) {
-    const normalDistribution = (x, mean = 1, stdDev = 0.3) => {
+    const normalDistribution = (x, mean = 1, stdDev = 0.2) => {
       return Math.exp(-0.5 * Math.pow((x - mean) / stdDev, 2)) / (stdDev * Math.sqrt(2 * Math.PI))
     }
 
@@ -57,9 +58,9 @@ export default {
 
     const normalDistributionPath = computed(() => {
       const points = []
-      for (let x = 0; x <= 2; x += 0.05) {
+      for (let x = 0.4; x <= 1.6; x += 0.005) {
         const y = normalDistribution(x)
-        points.push([xScale.value(x), 250 - y * 40])
+        points.push([xScale.value(x), 250 - y * 50])
       }
       return 'M' + points.map(p => p.join(',')).join('L')
     })

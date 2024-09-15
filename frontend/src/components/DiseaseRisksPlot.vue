@@ -67,8 +67,24 @@ export default defineComponent({
           angleLines: {
             display: false
           },
-          suggestedMin: 0,
-          suggestedMax: 100
+          grid: {
+            color: (context) => {
+              if (context.tick.value === 0) {
+                return 'rgba(0, 0, 0, 0.5)' // 0 刻度線的顏色
+              }
+              return 'rgba(0, 0, 0, 0.1)' // 其他刻度線的顏色
+            },
+            lineWidth: (context) => {
+              if (context.tick.value === 0) {
+                return 2 // 0 刻度線的寬度
+              }
+              return 1 // 其他刻度線的寬度
+            }
+          },
+          ticks: {
+            backdropColor: 'transparent',
+            color: 'rgba(0, 0, 0, 0.7)' // 刻度標籤的顏色
+          }
         }
       }
     }
