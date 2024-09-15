@@ -1,8 +1,9 @@
-import Vue from 'vue'
+import { createApp } from 'vue'
 import App from './App.vue'
 
-Vue.config.productionTip = false
+const app = createApp(App)
 
-new Vue({
-  render: h => h(App),
-}).$mount('#app')
+// 如果你有其他的全局配置,可以在這裡添加
+// 例如: app.use(router)
+
+app.mount('#app')
