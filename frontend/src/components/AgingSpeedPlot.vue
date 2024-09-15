@@ -26,6 +26,8 @@
 </template>
 
 <script>
+import { ref, computed } from 'vue'
+
 export default {
   name: 'AgingSpeedPlot',
   props: {
@@ -46,28 +48,28 @@ export default {
       default: 300
     }
   },
-  methods: {
-    normalDistribution (x, mean = 1, stdDev = 0.3) {
+  setup (props) {
+    const normalDistribution = (x, mean = 1, stdDev = 0.3) => {
       return Math.exp(-0.5 * Math.pow((x - mean) / stdDev, 2)) / (stdDev * Math.sqrt(2 * Math.PI))
-    },
-    generateNormalDistributionPath () {
+    }
+
+    const xScale = computed(() => (x) => 50 + (x / 2) * 300)
+
+    const normalDistributionPath = computed(() => {
       const points = []
       for (let x = 0; x <= 2; x += 0.05) {
-        const y = this.normalDistribution(x)
-        points.push([this.xScale(x), 250 - y * 40])
+        const y = normalDistribution(x)
+        points.push([xScale.value(x), 250 - y * 40])
       }
       return 'M' + points.map(p => p.join(',')).join('L')
-    }
-  },
-  computed: {
-    normalDistributionPath () {
-      return this.generateNormalDistributionPath()
-    },
-    xScale () {
-      return x => 50 + (x / 2) * 300
-    },
-    xAxisTicks () {
-      return [0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0]
+    })
+
+    const xAxisTicks = ref([0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0])
+
+    return {
+      normalDistributionPath,
+      xScale,
+      xAxisTicks
     }
   }
 }

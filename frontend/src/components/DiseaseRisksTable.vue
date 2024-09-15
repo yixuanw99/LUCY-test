@@ -9,7 +9,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(risk, index) in risks" :key="index" class="hover:bg-gray-50">
+        <tr v-for="risk in risks" :key="risk.name" class="hover:bg-gray-50">
           <td class="py-2 px-4 border-b">{{ risk.name }}</td>
           <td class="py-2 px-4 border-b">{{ risk.relative }}</td>
           <td class="py-2 px-4 border-b">{{ risk.absolute }}</td>
@@ -20,6 +20,8 @@
 </template>
 
 <script>
+import { computed } from 'vue'
+
 export default {
   name: 'DiseaseRisksTable',
   props: {
@@ -28,37 +30,34 @@ export default {
       required: true
     }
   },
-  computed: {
-    risks () {
-      return [
-        { name: '全因死亡率', relative: this.diseaseRisks[0].acmHorvathRisk, absolute: this.diseaseRisks[1].acmPaceRisk },
-        { name: '心血管疾病', relative: this.diseaseRisks[0].cvdHorvathRisk, absolute: this.diseaseRisks[1].cvdPaceRisk },
-        { name: '糖尿病風險', relative: this.diseaseRisks[0].dmHorvathRisk, absolute: this.diseaseRisks[1].dmPaceRisk },
-        { name: '失智風險', relative: this.diseaseRisks[0].adHorvathRisk, absolute: this.diseaseRisks[1].adPaceRisk },
-        { name: '癌症風險', relative: this.diseaseRisks[0].cancerHorvathRisk, absolute: this.diseaseRisks[1].cancerPaceRisk }
-      ]
-    }
+  setup (props) {
+    const risks = computed(() => [
+      { name: '全因死亡率', relative: props.diseaseRisks[0].acmHorvathRisk, absolute: props.diseaseRisks[1].acmPaceRisk },
+      { name: '心血管疾病', relative: props.diseaseRisks[0].cvdHorvathRisk, absolute: props.diseaseRisks[1].cvdPaceRisk },
+      { name: '糖尿病風險', relative: props.diseaseRisks[0].dmHorvathRisk, absolute: props.diseaseRisks[1].dmPaceRisk },
+      { name: '失智風險', relative: props.diseaseRisks[0].adHorvathRisk, absolute: props.diseaseRisks[1].adPaceRisk },
+      { name: '癌症風險', relative: props.diseaseRisks[0].cancerHorvathRisk, absolute: props.diseaseRisks[1].cancerPaceRisk }
+    ])
+
+    return { risks }
   }
 }
 </script>
 
 <style scoped>
 .overflow-x-auto {
-overflow-x: auto;
+  overflow-x: auto;
 }
 table {
-border-collapse: collapse;
-width: 100%;
+  border-collapse: collapse;
+  width: 100%;
 }
 th, td {
-border: 1px solid #e2e8f0;
-padding: 0.5rem 1rem;
-text-align: left;
+  border: 1px solid #e2e8f0;
+  padding: 0.5rem 1rem;
+  text-align: left;
 }
 thead {
-background-color: #f8fafc;
+  background-color: #f8fafc;
 }
-/* tr:hover {
-background-color: #f1f5f9;
-} */
 </style>

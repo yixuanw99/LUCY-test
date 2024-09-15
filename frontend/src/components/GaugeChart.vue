@@ -1,30 +1,27 @@
 <template>
-  <canvas ref='gauge' width='400' height='400'></canvas>
+  <canvas ref="gauge" width="400" height="400"></canvas>
 </template>
 
 <script>
-export default {
+import { defineComponent, ref, onMounted, watch } from 'vue'
+
+export default defineComponent({
   name: 'GaugeChart',
   props: {
     bioAge: Number,
     chroAge: Number
   },
-  mounted () {
-    this.drawGauge()
-  },
-  watch: {
-    bioAge: 'drawGauge',
-    chroAge: 'drawGauge'
-  },
-  methods: {
-    drawGauge () {
-      const canvas = this.$refs.gauge
+  setup (props) {
+    const gauge = ref(null)
+
+    const drawGauge = () => {
+      const canvas = gauge.value
       const ctx = canvas.getContext('2d')
       ctx.clearRect(0, 0, canvas.width, canvas.height) // Clear previous drawings
 
       // Dynamically set min and max values
-      const minValue = Math.round(this.chroAge - 20)
-      const maxValue = Math.round(this.chroAge + 20)
+      const minValue = Math.round(props.chroAge - 20)
+      const maxValue = Math.round(props.chroAge + 20)
 
       // Center of the canvas
       const centerX = (canvas.width / 2)
@@ -32,8 +29,6 @@ export default {
       const radius = 150
 
       // Angles for the gauge
-      // const startAngle = 200 * Math.PI / 180
-      // const endAngle = -20 * Math.PI / 180
       const startAngle = 0.8 * Math.PI
       const endAngle = 2.2 * Math.PI
 
@@ -46,12 +41,12 @@ export default {
 
       // Calculate where the needle should point
       let valueFrac
-      if (this.bioAge > this.chroAge) {
-        valueFrac = 0.5 + 0.5 * ((this.bioAge - this.chroAge) / (maxValue - this.chroAge))
-      } else if (this.bioAge === this.chroAge) {
+      if (props.bioAge > props.chroAge) {
+        valueFrac = 0.5 + 0.5 * ((props.bioAge - props.chroAge) / (maxValue - props.chroAge))
+      } else if (props.bioAge === props.chroAge) {
         valueFrac = 0.5
       } else {
-        valueFrac = 0.5 - 0.5 * ((this.chroAge - this.bioAge) / (this.chroAge - minValue))
+        valueFrac = 0.5 - 0.5 * ((props.chroAge - props.bioAge) / (props.chroAge - minValue))
       }
 
       const needleAngle = startAngle + valueFrac * (endAngle - startAngle)
@@ -93,8 +88,8 @@ export default {
       ctx.fillStyle = 'black'
       ctx.textAlign = 'center'
 
-      ctx.fillText('細胞年齡: ' + this.bioAge, centerX, centerY - radius - 20) // Biological age at top
-      ctx.fillText('實際年齡: ' + this.chroAge, centerX, centerY + radius + 40) // Chronological age at bottom
+      ctx.fillText('細胞年齡: ' + props.bioAge, centerX, centerY - radius - 20) // Biological age at top
+      ctx.fillText('實際年齡: ' + props.chroAge, centerX, centerY + radius + 40) // Chronological age at bottom
       ctx.fillText(minValue, centerX - radius / 2 - 25, centerY + radius / 2 + 25) // Min value on left
       ctx.fillText(maxValue, centerX + radius / 2 + 25, centerY + radius / 2 + 25) // Max value on right
 
@@ -102,14 +97,27 @@ export default {
       ctx.fillText('Younger', centerX - radius + 50, centerY + 35)
       ctx.fillText('Older', centerX + radius - 40, centerY + 35)
     }
+
+    onMounted(() => {
+      drawGauge()
+    })
+
+    watch(() => [props.bioAge, props.chroAge], () => {
+      drawGauge()
+    })
+
+    return {
+      gauge,
+      drawGauge
+    }
   }
-}
+})
 </script>
 
 <style scoped>
-  canvas {
-    display: block;
-    margin: 0;
-    background-color: white
-  }
+canvas {
+  display: block;
+  margin: 0;
+  background-color: white;
+}
 </style>
