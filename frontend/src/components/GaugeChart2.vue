@@ -1,5 +1,5 @@
 <template>
-    <div class="gauge-chart">
+    <div class="dna-age-gauge">
       <h2>Based on the methylation value of your sample, your DNAge is {{ dnaAge }}.</h2>
       <div class="dna-logo">
         <img src="path-to-your-dna-icon.svg" alt="DNA icon" class="dna-icon">
@@ -23,75 +23,75 @@
 </template>
 
 <script>
-  import { Bar } from 'vue-chartjs'
+import { Bar } from 'vue-chartjs'
 
-  export default {
-    name: 'DNAgeGauge',
-    components: {
-      BarChart: Bar
+export default {
+  name: 'GaugeChart',
+  components: {
+    BarChart: Bar
+  },
+  props: {
+    dnaAge: {
+      type: Number,
+      required: true
     },
-    props: {
-      dnaAge: {
-        type: Number,
-        required: true
-      },
-      calendarAge: {
-        type: Number,
-        required: true
-      }
-    },
-    data() {
-      return {
-        chartData: {
-          labels: ['Age'],
-          datasets: [
-            {
-              data: [this.dnaAge],
-              backgroundColor: '#4CAF50',
-              borderColor: '#4CAF50',
-              borderWidth: 1,
-              borderRadius: 5,
-              barThickness: 10
-            },
-            {
-              data: [this.calendarAge],
-              backgroundColor: '#9E9E9E',
-              borderColor: '#9E9E9E',
-              borderWidth: 1,
-              borderRadius: 5,
-              barThickness: 10
-            }
-          ]
-        },
-        chartOptions: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            xAxes: [{
-              display: true,
-              ticks: {
-                beginAtZero: true,
-                max: 100,
-                stepSize: 50
-              },
-              gridLines: {
-                display: false
-              }
-            }],
-            yAxes: [{
-              display: false
-            }]
+    calendarAge: {
+      type: Number,
+      required: true
+    }
+  },
+  data () {
+    return {
+      chartData: {
+        labels: ['Age'],
+        datasets: [
+          {
+            data: [this.dnaAge],
+            backgroundColor: '#4CAF50',
+            borderColor: '#4CAF50',
+            borderWidth: 1,
+            borderRadius: 5,
+            barThickness: 10
           },
-          legend: {
-            display: false
-          },
-          tooltips: {
-            enabled: false
+          {
+            data: [this.calendarAge],
+            backgroundColor: '#9E9E9E',
+            borderColor: '#9E9E9E',
+            borderWidth: 1,
+            borderRadius: 5,
+            barThickness: 10
           }
+        ]
+      },
+      chartOptions: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          xAxes: [{
+            display: true,
+            ticks: {
+              beginAtZero: true,
+              max: 100,
+              stepSize: 50
+            },
+            gridLines: {
+              display: false
+            }
+          }],
+          yAxes: [{
+            display: false
+          }]
+        },
+        legend: {
+          display: false
+        },
+        tooltips: {
+          enabled: false
         }
       }
     }
   }
+}
 </script>
 
   <style scoped>
