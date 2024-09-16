@@ -112,23 +112,23 @@ export default {
     const paceValue = ref(0)
     const pacePr = ref(0)
 
-    const deltaAge = computed(() => bioAge.value - chroAge.value)
+    // const deltaAge = computed(() => bioAge.value - chroAge.value)
     const deltaPace = computed(() => paceValue.value - 1)
 
     const diseaseRisks = computed(() => [
       {
-        acmHorvathRisk: Number((4.6 * deltaAge.value).toFixed(2)), // acm = all cause mortality
-        cvdHorvathRisk: Number((4.0 * deltaAge.value).toFixed(2)), // cvd = cardiovascular disease
-        dmHorvathRisk: Number((8.0 * deltaAge.value).toFixed(2)), // dm = diabetes mellitus
-        adHorvathRisk: Number((4.1 * deltaAge.value).toFixed(2)), // ad = Alzheimer's disease
-        cancerHorvathRisk: Number((6.0 * deltaAge.value).toFixed(2)) // cancer
+        acmPaceRisk: Number((200 * deltaPace.value).toFixed(2)), // acm = all cause mortality
+        cvdPaceRisk: Number((195 * deltaPace.value).toFixed(2)), // cvd = cardiovascular disease
+        dmPaceRisk: Number((155 * deltaPace.value).toFixed(2)), // dm = diabetes mellitus
+        adPaceRisk: Number((200 * deltaPace.value).toFixed(2)), // ad = Alzheimer's disease
+        cancerPaceRisk: Number((250 * deltaPace.value).toFixed(2)) // cancer
       },
       {
-        acmPaceRisk: Number((500 * deltaPace.value).toFixed(2)),
-        cvdPaceRisk: Number((195 * deltaPace.value).toFixed(2)),
-        dmPaceRisk: Number((155 * deltaPace.value).toFixed(2)),
-        adPaceRisk: Number((500 * deltaPace.value).toFixed(2)),
-        cancerPaceRisk: Number((500 * deltaPace.value).toFixed(2))
+        acmPaceRiskReduced01: Number((200 * (deltaPace.value - 0.05)).toFixed(2)),
+        cvdPaceRiskReduced01: Number((195 * (deltaPace.value - 0.05)).toFixed(2)),
+        dmPaceRiskReduced01: Number((155 * (deltaPace.value - 0.05)).toFixed(2)),
+        adPaceRiskReduced01: Number((200 * (deltaPace.value - 0.05)).toFixed(2)),
+        cancerPaceRiskReduced01: Number((250 * (deltaPace.value - 0.05)).toFixed(2))
       }
     ])
 

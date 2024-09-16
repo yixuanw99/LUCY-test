@@ -4,8 +4,8 @@
       <thead>
         <tr class="bg-gray-100">
           <th class="py-2 px-4 border-b text-left">疾病風險</th>
-          <th class="py-2 px-4 border-b text-left">基礎風險(horvath)(%)</th>
-          <th class="py-2 px-4 border-b text-left">當前風險(pace)(%)</th>
+          <th class="py-2 px-4 border-b text-left">當前風險(DunedinPACE)(%)</th>
+          <th class="py-2 px-4 border-b text-left">若DunedinPACE減少0.05(%)</th>
         </tr>
       </thead>
       <tbody>
@@ -32,11 +32,11 @@ export default {
   },
   setup (props) {
     const risks = computed(() => [
-      { name: '全因死亡率', relative: props.diseaseRisks[0].acmHorvathRisk, absolute: props.diseaseRisks[1].acmPaceRisk },
-      { name: '心血管疾病', relative: props.diseaseRisks[0].cvdHorvathRisk, absolute: props.diseaseRisks[1].cvdPaceRisk },
-      { name: '糖尿病風險', relative: props.diseaseRisks[0].dmHorvathRisk, absolute: props.diseaseRisks[1].dmPaceRisk },
-      { name: '失智風險', relative: props.diseaseRisks[0].adHorvathRisk, absolute: props.diseaseRisks[1].adPaceRisk },
-      { name: '癌症風險', relative: props.diseaseRisks[0].cancerHorvathRisk, absolute: props.diseaseRisks[1].cancerPaceRisk }
+      { name: '全因死亡率', relative: props.diseaseRisks[0].acmPaceRisk, absolute: props.diseaseRisks[1].acmPaceRiskReduced01 },
+      { name: '心血管疾病', relative: props.diseaseRisks[0].cvdPaceRisk, absolute: props.diseaseRisks[1].cvdPaceRiskReduced01 },
+      { name: '糖尿病風險', relative: props.diseaseRisks[0].dmPaceRisk, absolute: props.diseaseRisks[1].dmPaceRiskReduced01 },
+      { name: '失智風險', relative: props.diseaseRisks[0].adPaceRisk, absolute: props.diseaseRisks[1].adPaceRiskReduced01 },
+      { name: '癌症風險', relative: props.diseaseRisks[0].cancerPaceRisk, absolute: props.diseaseRisks[1].cancerPaceRiskReduced01 }
     ])
 
     return { risks }

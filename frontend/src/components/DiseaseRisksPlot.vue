@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue'
+import { defineComponent, computed } from 'vue'
 import { Radar } from 'vue-chartjs'
 import { Chart as ChartJS, RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend } from 'chart.js'
 
@@ -21,11 +21,11 @@ export default defineComponent({
     }
   },
   setup (props) {
-    const chartData = {
+    const chartData = computed(() => ({
       labels: ['全因死亡率', '心血管疾病', '糖尿病風險', '失智風險', '癌症風險'],
       datasets: [
         {
-          label: '基礎風險(horvath)(%)',
+          label: '當前風險(DunedinPACE)(%)',
           backgroundColor: 'rgba(75, 192, 192, 0.2)',
           borderColor: 'rgba(75, 192, 192, 1)',
           pointBackgroundColor: 'rgba(75, 192, 192, 1)',
@@ -33,15 +33,15 @@ export default defineComponent({
           pointHoverBackgroundColor: '#fff',
           pointHoverBorderColor: 'rgba(75, 192, 192, 1)',
           data: [
-            props.diseaseRisks[0].acmHorvathRisk,
-            props.diseaseRisks[0].cvdHorvathRisk,
-            props.diseaseRisks[0].dmHorvathRisk,
-            props.diseaseRisks[0].adHorvathRisk,
-            props.diseaseRisks[0].cancerHorvathRisk
+            props.diseaseRisks[0].acmPaceRisk,
+            props.diseaseRisks[0].cvdPaceRisk,
+            props.diseaseRisks[0].dmPaceRisk,
+            props.diseaseRisks[0].adPaceRisk,
+            props.diseaseRisks[0].cancerPaceRisk
           ]
         },
         {
-          label: '當前風險(pace)(%)',
+          label: '若DunedinPACE減少0.05(%)',
           backgroundColor: 'rgba(54, 162, 235, 0.2)',
           borderColor: 'rgba(54, 162, 235, 1)',
           pointBackgroundColor: 'rgba(54, 162, 235, 1)',
@@ -49,15 +49,15 @@ export default defineComponent({
           pointHoverBackgroundColor: '#fff',
           pointHoverBorderColor: 'rgba(54, 162, 235, 1)',
           data: [
-            props.diseaseRisks[1].acmPaceRisk,
-            props.diseaseRisks[1].cvdPaceRisk,
-            props.diseaseRisks[1].dmPaceRisk,
-            props.diseaseRisks[1].adPaceRisk,
-            props.diseaseRisks[1].cancerPaceRisk
+            props.diseaseRisks[1].acmPaceRiskReduced01,
+            props.diseaseRisks[1].cvdPaceRiskReduced01,
+            props.diseaseRisks[1].dmPaceRiskReduced01,
+            props.diseaseRisks[1].adPaceRiskReduced01,
+            props.diseaseRisks[1].cancerPaceRiskReduced01
           ]
         }
       ]
-    }
+    }))
 
     const chartOptions = {
       responsive: true,
