@@ -25,10 +25,10 @@ export default defineComponent({
       labels: ['全因死亡率', '心血管疾病', '糖尿病風險', '失智風險', '癌症風險'],
       datasets: [
         {
-          label: '當前風險(DunedinPACE)(%)',
-          backgroundColor: 'rgba(75, 192, 192, 0.2)',
-          borderColor: 'rgba(75, 192, 192, 1)',
-          pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+          label: '當前DunedinPACE風險(%)',
+          backgroundColor: 'rgba(54, 162, 235, 0.05)',
+          borderColor: 'rgba(54, 162, 235, 1)',
+          pointBackgroundColor: 'rgba(54, 162, 235, 1)',
           pointBorderColor: '#fff',
           pointHoverBackgroundColor: '#fff',
           pointHoverBorderColor: 'rgba(75, 192, 192, 1)',
@@ -41,10 +41,10 @@ export default defineComponent({
           ]
         },
         {
-          label: '若DunedinPACE減少0.05(%)',
-          backgroundColor: 'rgba(54, 162, 235, 0.2)',
-          borderColor: 'rgba(54, 162, 235, 1)',
-          pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+          label: '若DunedinPACE減少0.05時風險(%)',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          borderColor: 'rgba(75, 192, 192, 1)',
+          pointBackgroundColor: 'rgba(75, 192, 192, 1)',
           pointBorderColor: '#fff',
           pointHoverBackgroundColor: '#fff',
           pointHoverBorderColor: 'rgba(54, 162, 235, 1)',
