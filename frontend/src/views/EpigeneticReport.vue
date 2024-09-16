@@ -37,7 +37,7 @@
             <p>{{ olderYoungerComment }}</p>
           </div>
           <div class="section-figure">
-            <GaugeChart :bio-age="formattedBioAge" :chro-age="formattedchroAge" />
+            <GaugeChart :bio-age="formattedBioAge" :chro-age="formattedChroAge" />
           </div>
         </div>
       </div>
@@ -113,7 +113,7 @@ export default {
     const pacePr = ref(0)
 
     const formattedBioAge = computed(() => bioAge.value.toFixed(2))
-    const formattedChroAge = computed(() => chroAge.value.toFixed(2))
+    const formattedChroAge = computed(() => chroAge.value.toFixed(1))
     const formattedPaceValue = computed(() => paceValue.value.toFixed(2))
 
     // const deltaAge = computed(() => bioAge.value - chroAge.value) 暫時沒用到 TODO整理一些computed
