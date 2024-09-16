@@ -32,18 +32,6 @@ class Report(Base):
     chro_age = Column(Float)
     pace_value = Column(Float)
     pace_pr = Column(Integer)
-    
-    # Disease risks
-    acm_horvath_risk = Column(Float) # acm = all cause mortality
-    cvd_horvath_risk = Column(Float) # cvd = cardiovascular disease
-    dm_horvath_risk = Column(Float) # dm = diabetes mellitus
-    ad_horvath_risk = Column(Float) # ad = alzheimer's disease
-    cancer_horvath_risk = Column(Float) # cancer
-    acm_pace_risk = Column(Float)
-    cvd_pace_risk = Column(Float)
-    dm_pace_risk = Column(Float)
-    ad_pace_risk = Column(Float)
-    cancer_pace_risk = Column(Float)
 
     sample_data = relationship("SampleData", back_populates="report", uselist=False, foreign_keys=[sample_id])
     user = relationship("User", back_populates="reports")

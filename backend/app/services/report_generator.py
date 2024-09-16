@@ -81,17 +81,7 @@ class ReportGenerator:
                     "bio_age": bio_age,
                     "chro_age": chro_age,
                     "pace_value": pace_value,
-                    "pace_pr": pace_pr,
-                    "acm_horvath_risk": 4.6 * delta_age, # 以下risk已經乘過100，所以單位是%
-                    "cvd_horvath_risk": 4.0 * delta_age,
-                    "dm_horvath_risk": 8.0 * delta_age,
-                    "ad_horvath_risk": 4.1 * delta_age,
-                    "cancer_horvath_risk": 6.0 * delta_age,
-                    "acm_pace_risk": 500 * delta_pace,
-                    "cvd_pace_risk": 195 * delta_pace,
-                    "dm_pace_risk": 155 * delta_pace,
-                    "ad_pace_risk": 500 * delta_pace,
-                    "cancer_pace_risk": 500 * delta_pace
+                    "pace_pr": pace_pr
                 }
             }
             reports.append(report)
@@ -118,17 +108,7 @@ class ReportGenerator:
                         bio_age=data['bio_age'],
                         chro_age=data['chro_age'],
                         pace_value=data['pace_value'],
-                        pace_pr=data['pace_pr'],
-                        acm_horvath_risk=data['acm_horvath_risk'],
-                        cvd_horvath_risk=data['cvd_horvath_risk'],
-                        dm_horvath_risk=data['dm_horvath_risk'],
-                        ad_horvath_risk=data['ad_horvath_risk'],
-                        cancer_horvath_risk=data['cancer_horvath_risk'],
-                        acm_pace_risk=data['acm_pace_risk'],
-                        cvd_pace_risk=data['cvd_pace_risk'],
-                        dm_pace_risk=data['dm_pace_risk'],
-                        ad_pace_risk=data['ad_pace_risk'],
-                        cancer_pace_risk=data['cancer_pace_risk']
+                        pace_pr=data['pace_pr']
                     )
                     db.add(new_report)
                     saved_reports.append(new_report)

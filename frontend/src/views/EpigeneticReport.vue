@@ -118,10 +118,27 @@ export default {
     const chroAge = ref(0)
     const paceValue = ref(0)
     const pacePr = ref(0)
-    const diseaseRisks = reactive([
-      { acmHorvathRisk: 0, cvdHorvathRisk: 0, dmHorvathRisk: 0, adHorvathRisk: 0, cancerHorvathRisk: 0 },
-      { acmPaceRisk: 0, cvdPaceRisk: 0, dmPaceRisk: 0, adPaceRisk: 0, cancerPaceRisk: 0 }
+
+    const deltaAge = computed(() => bioAge.value - chroAge.value)
+    const deltaPace = computed(() => paceValue.value - 1)
+
+    const diseaseRisks = computed(() => [
+      {
+        acmHorvathRisk: Number((4.6 * deltaAge.value).toFixed(2)), // acm = all cause mortality
+        cvdHorvathRisk: Number((4.0 * deltaAge.value).toFixed(2)), // cvd = cardiovascular disease
+        dmHorvathRisk: Number((8.0 * deltaAge.value).toFixed(2)), // dm = diabetes mellitus
+        adHorvathRisk: Number((4.1 * deltaAge.value).toFixed(2)), // ad = Alzheimer's disease
+        cancerHorvathRisk: Number((6.0 * deltaAge.value).toFixed(2)) // cancer
+      },
+      {
+        acmPaceRisk: Number((500 * deltaPace.value).toFixed(2)),
+        cvdPaceRisk: Number((195 * deltaPace.value).toFixed(2)),
+        dmPaceRisk: Number((155 * deltaPace.value).toFixed(2)),
+        adPaceRisk: Number((500 * deltaPace.value).toFixed(2)),
+        cancerPaceRisk: Number((500 * deltaPace.value).toFixed(2))
+      }
     ])
+
     const epigeneticClockFigUrl = ref('')
     const agingSpeedFigUrl = ref('')
     const diseaseRisksFigUrl = ref('')
@@ -165,20 +182,6 @@ export default {
         chroAge.value = reportData.value.chro_age
         paceValue.value = reportData.value.pace_value
         pacePr.value = reportData.value.pace_pr
-        diseaseRisks[0] = {
-          acmHorvathRisk: reportData.value.acm_horvath_risk,
-          cvdHorvathRisk: reportData.value.cvd_horvath_risk,
-          dmHorvathRisk: reportData.value.dm_horvath_risk,
-          adHorvathRisk: reportData.value.ad_horvath_risk,
-          cancerHorvathRisk: reportData.value.cancer_horvath_risk
-        }
-        diseaseRisks[1] = {
-          acmPaceRisk: reportData.value.acm_pace_risk,
-          cvdPaceRisk: reportData.value.cvd_pace_risk,
-          dmPaceRisk: reportData.value.dm_pace_risk,
-          adPaceRisk: reportData.value.ad_pace_risk,
-          cancerPaceRisk: reportData.value.cancer_pace_risk
-        }
       }
     }
 
