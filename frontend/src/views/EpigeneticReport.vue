@@ -112,9 +112,9 @@ export default {
     const paceValue = ref(0)
     const pacePr = ref(0)
 
-    const formattedBioAge = computed(() => bioAge.value.toFixed(2))
-    const formattedChroAge = computed(() => chroAge.value.toFixed(1))
-    const formattedPaceValue = computed(() => paceValue.value.toFixed(2))
+    const formattedBioAge = computed(() => parseFloat(bioAge.value.toFixed(2)))
+    const formattedChroAge = computed(() => parseFloat(chroAge.value.toFixed(1)))
+    const formattedPaceValue = computed(() => parseFloat(paceValue.value.toFixed(2)))
 
     // const deltaAge = computed(() => bioAge.value - chroAge.value) 暫時沒用到 TODO整理一些computed
     const deltaPace = computed(() => paceValue.value - 1)
