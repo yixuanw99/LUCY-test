@@ -37,7 +37,7 @@
             <p>{{ olderYoungerComment }}</p>
           </div>
           <div class="section-figure">
-            <GaugeChart :bio-age="formattedBioAge" :chro-age="formattedChroAge" />
+            <GaugeChart :bio-age="formattedBioAge" :chro-age="formattedChroAge" :width="1000"/>
           </div>
         </div>
       </div>
@@ -235,6 +235,10 @@ export default {
 
 .section-figure {
   display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 20px;
   flex-wrap: wrap;
   justify-content: space-around;
 }

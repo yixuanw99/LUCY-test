@@ -4,36 +4,34 @@
     <!-- <text :x="width / 2" y="30" text-anchor="middle" font-size="7">Based on the methylation value of your sample, your DNAge is {{ bioAge }} and your Chronological Age is {{ chroAge }}.</text> -->
 
     <!-- LUCY® logo -->
-    <g transform="translate(40, 50)">
-      <!-- <path d="M0,8 L4,0 L8,8 M4,0 L4,16" stroke="#4CAF50" stroke-width="2" fill="none" /> -->
-      <text :x="0" y="0" font-size="24" font-family="Nova Mono" font-weight="bold">LUCY®</text>
+    <g :transform="`translate(${width * 0.08}, ${height * 0.167})`">
+      <text :x="0" :y="0" :font-size="width * 0.048" font-family="Nova Mono" font-weight="bold">LUCY®</text>
     </g>
 
     <!-- 刻度標籤 -->
-    <text :x="50" :y="height - 100" text-anchor="middle" font-size="12">0</text>
-    <text :x="width - 50" :y="height - 100" text-anchor="middle" font-size="12">100</text>
+    <text :x="width * 0.1" :y="height * 0.667" text-anchor="middle" :font-size="width * 0.024">0</text>
+    <text :x="width * 0.9" :y="height * 0.667" text-anchor="middle" :font-size="width * 0.024">100</text>
 
     <!-- 年齡刻度 -->
-    <line :x1="50" :y1="height - 120" :x2="width - 50" :y2="height - 120" stroke="#E0E0E0" stroke-width="4" />
+    <line :x1="width * 0.1" :y1="height * 0.6" :x2="width * 0.9" :y2="height * 0.6" stroke="#E0E0E0" :stroke-width="width * 0.008" />
 
     <!-- Bio Age -->
-    <g :transform="`translate(${bioAgePosition}, ${height - 80})`">
-      <path :d="bioAgePin" :transform="`translate(${-26}, ${-130})`" fill="#4CAF50" />
-      <rect :x="0" :y="-44" width="8" height="8" fill="#4CAF50" />
-      <circle :cx="4" cy="-100" r="22" fill="#4CAF50" />
-      <text :x="4" y="-92" text-anchor="middle" fill="white" font-size="22" font-weight="bold">{{ bioAge }}</text>
-      <text :x="0" y="-140" text-anchor="middle" font-size="12" font-weight="bold">Biological Age</text>
+    <g :transform="`translate(${bioAgePosition}, ${height * 0.733})`">
+      <path :d="bioAgePin" :transform="`translate(${-width * 0.052}, ${-height * 0.433}) scale(1)`" fill="#4CAF50" />
+      <rect :x="0" :y="-height * 0.147" :width="width * 0.016" :height="height * 0.027" fill="#4CAF50" />
+      <circle :cx="width * 0.008" :cy="-height * 0.333" :r="width * 0.044" fill="#4CAF50" />
+      <text :x="width * 0.008" :y="-height * 0.307" text-anchor="middle" fill="white" :font-size="width * 0.044" font-weight="bold">{{ bioAge }}</text>
+      <text :x="0" :y="-height * 0.467" text-anchor="middle" :font-size="width * 0.024" font-weight="bold">Biological Age</text>
     </g>
 
     <!-- Calendar Age -->
-    <g :transform="`translate(${chroAgePosition}, ${height - 80})`">
-      <path :d="chroAgePin" :transform="`translate(${-15}, ${20}) scale(1, -1)`" fill="#9E9E9E" />
-      <rect :x="0" :y="-44" width="8" height="8" fill="#9E9E9E" />
-      <circle :cx="3" cy="1" r="12" fill="#9E9E9E" />
-      <text :x="3" y="6" text-anchor="middle" fill="white" font-size="16">{{ chroAge }}</text>
-      <text :x="0" y="35" text-anchor="middle" font-size="12" font-weight="bold">Calendar Age</text>
+    <g :transform="`translate(${chroAgePosition}, ${height * 0.733})`">
+      <path :d="chroAgePin" :transform="`translate(${-width * 0.03}, ${height * 0.067}) scale(1, -1)`" fill="#9E9E9E" />
+      <rect :x="0" :y="-height * 0.147" :width="width * 0.016" :height="height * 0.027" fill="#9E9E9E" />
+      <circle :cx="width * 0.006" :cy="height * 0.003" :r="width * 0.024" fill="#9E9E9E" />
+      <text :x="width * 0.006" :y="height * 0.02" text-anchor="middle" fill="white" :font-size="width * 0.032">{{ chroAge }}</text>
+      <text :x="0" :y="height * 0.117" text-anchor="middle" :font-size="width * 0.024" font-weight="bold">Calendar Age</text>
     </g>
-
   </svg>
 </template>
 
@@ -54,23 +52,13 @@ export default {
     width: {
       type: Number,
       default: 500
-    },
-    height: {
-      type: Number,
-      default: 300
-    },
-    bioAgePinScale: {
-      type: Number,
-      default: 1
-    },
-    chroAgePinScale: {
-      type: Number,
-      default: 0.6
     }
   },
   setup (props) {
+    const height = computed(() => props.width * 0.6) // 保持 5:3 的寬高比
+
     const scalePosition = computed(() => (age) => {
-      return 50 + (age / 100) * (props.width - 100)
+      return props.width * 0.1 + (age / 100) * (props.width * 0.8)
     })
 
     const bioAgePosition = computed(() => scalePosition.value(props.bioAge))
@@ -85,10 +73,11 @@ export default {
       Z
     `
 
-    const bioAgePin = computed(() => createPin(props.bioAgePinScale))
-    const chroAgePin = computed(() => createPin(props.chroAgePinScale))
+    const bioAgePin = computed(() => createPin(props.width / 500))
+    const chroAgePin = computed(() => createPin(props.width / 500 * 0.6))
 
     return {
+      height,
       bioAgePosition,
       chroAgePosition,
       bioAgePin,
