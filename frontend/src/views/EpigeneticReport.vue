@@ -33,11 +33,11 @@
         <hr width="100%" size="3" color="#80c2ec" style="margin-top: 0px;">
         <div class="section-content">
           <div class="section-text">
-            <p>表觀遺傳時鐘是一種根據DNA甲基化水平來預測生物年齡的工具。根據你的表觀基因，你的生物年齡為{{bioAge}}歲，比你的實際年齡{{olderYounger}}{{diffAge}}歲。</p>
+            <p>表觀遺傳時鐘是一種根據DNA甲基化水平來預測生物年齡的工具。根據你的表觀基因，你的生物年齡為{{formattedBioAge}}歲，比你的實際年齡{{olderYounger}}{{diffAge}}歲。</p>
             <p>{{ olderYoungerComment }}</p>
           </div>
           <div class="section-figure">
-            <GaugeChart :bio-age="bioAge" :chro-age="chroAge" />
+            <GaugeChart :bio-age="formattedBioAge" :chro-age="formattedchroAge" />
           </div>
         </div>
       </div>
@@ -53,11 +53,11 @@
         <hr width="100%" size="3" color="#80c2ec" style="margin-top: 0px;">
         <div class="section-content">
           <div class="section-text">
-            <p>你的老化速度為{{ paceValue }}，比{{ pacePrInverse }}％同齡的人老得慢。</p>
-            <p>代表平均一個人老1.0年，你的身體老了{{paceValue}}年。數值越低，代表老化速度越慢。</p>
+            <p>你的老化速度為{{ formattedPaceValue  }}，比{{ pacePrInverse }}％同齡的人老得慢。</p>
+            <p>代表平均一個人老1.0年，你的身體老了{{ formattedPaceValue }}年。數值越低，代表老化速度越慢。</p>
           </div>
           <div class="section-figure">
-            <AgingSpeedPlot :pace-value="paceValue" :pace-pr="pacePrInverse" />
+            <AgingSpeedPlot :pace-value="formattedPaceValue" :pace-pr="pacePrInverse" />
           </div>
         </div>
       </div>
@@ -84,7 +84,7 @@
 
 <script>
 import { ref, reactive, computed } from 'vue'
-import GaugeChart from '@/components/GaugeChart.vue'
+import GaugeChart from '@/components/GaugeChart2.vue'
 import AgingSpeedPlot from '@/components/AgingSpeedPlot.vue'
 import DiseaseRisksTable from '@/components/DiseaseRisksTable.vue'
 import DiseaseRisksPlot from '@/components/DiseaseRisksPlot.vue'
@@ -112,7 +112,11 @@ export default {
     const paceValue = ref(0)
     const pacePr = ref(0)
 
-    // const deltaAge = computed(() => bioAge.value - chroAge.value)
+    const formattedBioAge = computed(() => bioAge.value.toFixed(2))
+    const formattedChroAge = computed(() => chroAge.value.toFixed(2))
+    const formattedPaceValue = computed(() => paceValue.value.toFixed(2))
+
+    // const deltaAge = computed(() => bioAge.value - chroAge.value) 暫時沒用到 TODO整理一些computed
     const deltaPace = computed(() => paceValue.value - 1)
 
     const diseaseRisks = computed(() => [
@@ -185,6 +189,9 @@ export default {
       bioAge,
       chroAge,
       paceValue,
+      formattedBioAge,
+      formattedChroAge,
+      formattedPaceValue,
       pacePr,
       diseaseRisks,
       epigeneticClockFigUrl,
