@@ -91,6 +91,7 @@ export default {
       })
     }
 
+    // may cause stack overflow
     const updateChart = () => {
       if (chart.value) {
         const combinedRisk = props.horvathRisk + props.paceRisk
