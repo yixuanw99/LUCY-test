@@ -11,7 +11,8 @@ const routes = [
   {
     path: '/report/:id',
     name: 'ReportDisplay',
-    component: EpigeneticReport
+    component: EpigeneticReport,
+    props: true
   }
 ]
 

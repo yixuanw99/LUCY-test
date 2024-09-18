@@ -20,15 +20,34 @@ export default {
     const router = useRouter()
 
     const fetchReport = async () => {
-      try {
-        const response = await axios.get(`http://127.0.0.1:8000/report/${inputSampleId.value}`)
-        // 假設我們將報告數據存儲在 localStorage 中
-        localStorage.setItem('reportData', JSON.stringify(response.data))
-        // 導航到報告顯示頁面
-        router.push({ name: 'ReportDisplay', params: { id: inputSampleId.value } })
-      } catch (error) {
-        console.error('Error fetching report:', error)
-        alert('無法獲取報告，請檢查樣本ID是否正確。')
+      if (process.env.NODE_ENV === 'production') {
+        try {
+          const response = await fetch(process.env.BASE_URL + 'mockdata/mock-data.json')
+          const mockData = await response.json()
+          const reportIndex = mockData.reports.findIndex(r => r.sample_id === inputSampleId.value)
+
+          if (reportIndex !== -1) {
+            localStorage.setItem('reportData', JSON.stringify(mockData.reports[reportIndex]))
+            router.push({ name: 'ReportDisplay', params: { id: inputSampleId.value } })
+          } else {
+            alert('無法找到匹配的報告，請檢查樣本ID是否正確。')
+          }
+        } catch (error) {
+          console.error('Error fetching mock report:', error)
+          alert('無法獲取報告，請稍後再試。')
+        }
+      } else {
+        try {
+          // 在開發環境中，使用實際的API
+          const response = await axios.get(`http://127.0.0.1:8000/report/${inputSampleId.value}`)
+          // 假設我們將報告數據存儲在 localStorage 中
+          localStorage.setItem('reportData', JSON.stringify(response.data))
+          // 導航到報告顯示頁面
+          router.push({ name: 'ReportDisplay', params: { id: inputSampleId.value } })
+        } catch (error) {
+          console.error('Error fetching report:', error)
+          alert('無法獲取報告，請檢查樣本ID是否正確。')
+        }
       }
     }
 
