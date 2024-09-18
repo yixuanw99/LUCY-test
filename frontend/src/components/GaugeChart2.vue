@@ -18,19 +18,19 @@
     <!-- Bio Age -->
     <g :transform="`translate(${bioAgePosition}, ${height * 0.733})`">
       <path :d="bioAgePin" :transform="`translate(${-width * 0.052}, ${-height * 0.433}) scale(1)`" fill="#4CAF50" />
-      <rect :x="0" :y="-height * 0.147" :width="width * 0.016" :height="height * 0.027" fill="#4CAF50" />
+      <rect :x="0" :y="-height * 0.147" :width="width * 0.008" :height="height * 0.027" fill="#4CAF50" />
       <circle :cx="width * 0.008" :cy="-height * 0.333" :r="width * 0.044" fill="#4CAF50" />
-      <text :x="width * 0.008" :y="-height * 0.307" text-anchor="middle" fill="white" :font-size="width * 0.044" font-weight="bold">{{ bioAge }}</text>
-      <text :x="0" :y="-height * 0.467" text-anchor="middle" :font-size="width * 0.024" font-weight="bold">Biological Age</text>
+      <text :x="width * 0.008" :y="-height * 0.307" text-anchor="middle" fill="white" :font-size="width * 0.034" font-weight="bold" font-family="Lucida Console">{{ bioAge }}</text>
+      <text :x="0" :y="-height * 0.467" text-anchor="middle" :font-size="width * 0.024" font-family="Lucida Console" font-weight="bold">Biological Age</text>
     </g>
 
     <!-- Calendar Age -->
     <g :transform="`translate(${chroAgePosition}, ${height * 0.733})`">
       <path :d="chroAgePin" :transform="`translate(${-width * 0.03}, ${height * 0.067}) scale(1, -1)`" fill="#9E9E9E" />
-      <rect :x="0" :y="-height * 0.147" :width="width * 0.016" :height="height * 0.027" fill="#9E9E9E" />
+      <rect :x="0" :y="-height * 0.147" :width="width * 0.008" :height="height * 0.027" fill="#9E9E9E" />
       <circle :cx="width * 0.006" :cy="height * 0.003" :r="width * 0.024" fill="#9E9E9E" />
-      <text :x="width * 0.006" :y="height * 0.02" text-anchor="middle" fill="white" :font-size="width * 0.032">{{ chroAge }}</text>
-      <text :x="0" :y="height * 0.117" text-anchor="middle" :font-size="width * 0.024" font-weight="bold">Calendar Age</text>
+      <text :x="width * 0.006" :y="height * 0.02" text-anchor="middle" fill="white" :font-size="width * 0.032" font-family="Lucida Console">{{ chroAge }}</text>
+      <text :x="0" :y="height * 0.117" text-anchor="middle" :font-size="width * 0.024" font-family="Lucida Console" font-weight="bold">Calendar Age</text>
     </g>
   </svg>
 </template>

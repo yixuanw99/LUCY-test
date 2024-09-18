@@ -2,7 +2,12 @@
   <div class="lucy-report">
     <header>
       <div class="header-title">
-        <h1 style="margin: 0;">樂稀表觀檢測報告</h1>
+        <h1>樂稀表觀檢測報告</h1>
+        <nav class="report-nav">
+          <a href="#biological-age">生物年齡</a>
+          <a href="#aging-speed">老化速度</a>
+          <a href="#disease-risks">老化疾病風險評估</a>
+        </nav>
         <div class="logo-container">
           <img class="logo" src="@/assets/logo.png" alt="LUCY logo">
           <b class = "logo-text">LUCY</b>
@@ -19,7 +24,7 @@
     <main>
       <div v-if="reportData">
         <!-- 生物年齡 section -->
-        <section class="section">
+        <section id="biological-age" class="section">
           <div class="section-title">
             <h2>生物年齡</h2>
             <a class="cta" :href="'https://www.facebook.com/sharer.php?u=' + epigeneticClockFigUrl">
@@ -39,7 +44,7 @@
         </section>
 
         <!-- 老化速度 section -->
-        <section class="section">
+        <section id="aging-speed" class="section">
           <div class="section-title">
             <h2>老化速度</h2>
             <a class="cta" :href="'https://www.facebook.com/sharer.php?u=' + agingSpeedFigUrl">
@@ -59,7 +64,7 @@
         </section>
 
         <!-- 老化疾病風險評估 section -->
-        <section class="section">
+        <section id="disease-risks" class="section">
           <div class="section-title">
             <h2>老化疾病風險評估</h2>
             <a class="cta" :href="'https://www.facebook.com/sharer.php?u=' + diseaseRisksFigUrl">
@@ -215,25 +220,54 @@ header {
 }
 
 .header-title {
-  font-size: 1.5em;
-  padding: 0 3%;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 5px 5%;
+  position: fixed;
+  width: -webkit-fill-available;
+  background-color: #7bc9f6;
+}
+
+.header-title h1 {
+  font-size: 30px;
+  font-family: 'Noto Sans TC', sans-serif;
+  color: #303036;
+  margin: 0;
+  flex: 2;
+}
+
+.report-nav {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+  justify-content: center;
+}
+
+.report-nav a {
+  color: #303036;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.report-nav a:hover {
+  text-decoration: underline;
 }
 
 .logo-container {
   display: flex;
   align-items: center;
+  flex: 1;
+  justify-content: flex-end;
 }
 
 .logo {
-  width: 70px;
-  height: 70px;
+  width: 60px;
+  height: 60px;
 }
 
 .logo-text {
-  font-size: 60px;
+  font-size: 40px;
   font-family: 'Noto Sans TC', sans-serif;
   color: #303036;
   padding-bottom: 5px;
@@ -243,19 +277,31 @@ header {
   background-color: #f5f5f5;
   border-radius: 30px;
   display: flex;
-  gap: 15%;
-  margin: 5px 3% 20px 3%;
-  padding: 0 2%;
-  justify-content: flex-start;
+  gap: 10%;
+  margin: 80px 5% 20px;
+  justify-content: space-around;
 }
 
 main {
   flex: 1;
-  padding: 20px;
+  padding-top: 0px;
 }
 
 .section {
   margin-bottom: 40px;
+  padding: 70px 5% 0;
+}
+
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .section-figure {
@@ -275,7 +321,7 @@ footer {
 }
 
 .cta {
-  padding: 1% 1% 0% 1%;
+  padding: 0.5% 1%;
   border: 1px outset;
   color: #303030;
   text-decoration: none;
