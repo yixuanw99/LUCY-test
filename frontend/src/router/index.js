@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import FetchReport from '@/views/FetchReport.vue'
-import EpigeneticReport from '@/views/EpigeneticReport2.vue'
+import EpigeneticReport from '@/views/EpigeneticReport.vue'
 
 const routes = [
   {

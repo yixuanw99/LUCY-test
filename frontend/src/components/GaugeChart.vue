@@ -1,123 +1,87 @@
 <template>
-  <canvas ref="gauge" width="400" height="400"></canvas>
+  <svg :width="width" :height="height" :viewBox="`0 0 ${width} ${height}`">
+    <!-- 標題文本 -->
+    <text :x="width / 2" y="40" text-anchor="middle" font-size="14" font-family="Lucida Console">Based on the methylation pattern of your saliva,</text>
+    <text :x="width / 2" y="60" text-anchor="middle" font-size="14" font-family="Lucida Console">your Biological Age is <tspan font-weight="bold">{{ bioAge }}</tspan>.</text>
+
+    <!-- LUCY® logo -->
+    <!-- <g :transform="`translate(${width * 0.08}, ${height * 0.167})`"><text :x="0" :y="0" :font-size="width * 0.048" font-family="Nova Mono" font-weight="bold">LUCY®</text></g> -->
+
+    <!-- 刻度標籤 -->
+    <text :x="width * 0.1" :y="height * 0.667" text-anchor="middle" :font-size="width * 0.024" font-family="Lucida Console">0</text>
+    <text :x="width * 0.9" :y="height * 0.667" text-anchor="middle" :font-size="width * 0.024" font-family="Lucida Console">100</text>
+
+    <!-- 年齡刻度 -->
+    <line :x1="width * 0.1" :y1="height * 0.6" :x2="width * 0.9" :y2="height * 0.6" stroke="#E0E0E0" :stroke-width="width * 0.008" />
+
+    <!-- Bio Age -->
+    <g :transform="`translate(${bioAgePosition}, ${height * 0.733})`">
+      <path :d="bioAgePin" :transform="`translate(${-width * 0.052}, ${-height * 0.433}) scale(1)`" fill="#4CAF50" />
+      <rect :x="0" :y="-height * 0.147" :width="width * 0.008" :height="height * 0.027" fill="#4CAF50" />
+      <circle :cx="width * 0.008" :cy="-height * 0.333" :r="width * 0.044" fill="#4CAF50" />
+      <text :x="width * 0.008" :y="-height * 0.335" text-anchor="middle" fill="white" :font-size="width * 0.034" font-weight="bold" font-family="Lucida Console">{{ bioAge }}</text>
+      <text :x="0" :y="-height * 0.467" text-anchor="middle" :font-size="width * 0.024" font-family="Lucida Console" font-weight="bold">Biological Age</text>
+    </g>
+
+    <!-- Calendar Age -->
+    <g :transform="`translate(${chroAgePosition}, ${height * 0.733})`">
+      <path :d="chroAgePin" :transform="`translate(${-width * 0.03}, ${height * 0.067}) scale(1, -1)`" fill="#9E9E9E" />
+      <rect :x="0" :y="-height * 0.147" :width="width * 0.008" :height="height * 0.027" fill="#9E9E9E" />
+      <circle :cx="width * 0.006" :cy="height * 0.003" :r="width * 0.024" fill="#9E9E9E" />
+      <text :x="width * 0.006" :y="height * 0.02" text-anchor="middle" fill="white" :font-size="width * 0.032" font-family="Lucida Console">{{ chroAge }}</text>
+      <text :x="0" :y="height * 0.117" text-anchor="middle" :font-size="width * 0.024" font-family="Lucida Console" font-weight="bold">Calendar Age</text>
+    </g>
+  </svg>
 </template>
 
 <script>
-import { defineComponent, ref, onMounted, watch } from 'vue'
+import { computed } from 'vue'
 
-export default defineComponent({
+export default {
   name: 'GaugeChart',
   props: {
-    bioAge: Number,
-    chroAge: Number
+    bioAge: {
+      type: Number,
+      required: true
+    },
+    chroAge: {
+      type: Number,
+      required: true
+    },
+    width: {
+      type: Number,
+      default: 500
+    }
   },
   setup (props) {
-    const gauge = ref(null)
+    const height = computed(() => props.width * 0.75) // 保持 4:3 的寬高比
 
-    const drawGauge = () => {
-      const canvas = gauge.value
-      const ctx = canvas.getContext('2d')
-      ctx.clearRect(0, 0, canvas.width, canvas.height) // Clear previous drawings
-
-      // Dynamically set min and max values
-      const minValue = Math.round(props.chroAge - 20)
-      const maxValue = Math.round(props.chroAge + 20)
-
-      // Center of the canvas
-      const centerX = (canvas.width / 2)
-      const centerY = (canvas.height / 2)
-      const radius = 150
-
-      // Angles for the gauge
-      const startAngle = 0.8 * Math.PI
-      const endAngle = 2.2 * Math.PI
-
-      // Draw the grey background arc
-      ctx.beginPath()
-      ctx.arc(centerX, centerY + 25, radius, startAngle, endAngle)
-      ctx.lineWidth = 20
-      ctx.strokeStyle = 'lightgrey'
-      ctx.stroke()
-
-      // Calculate where the needle should point
-      let valueFrac
-      if (props.bioAge > props.chroAge) {
-        valueFrac = 0.5 + 0.5 * ((props.bioAge - props.chroAge) / (maxValue - props.chroAge))
-      } else if (props.bioAge === props.chroAge) {
-        valueFrac = 0.5
-      } else {
-        valueFrac = 0.5 - 0.5 * ((props.chroAge - props.bioAge) / (props.chroAge - minValue))
-      }
-
-      const needleAngle = startAngle + valueFrac * (endAngle - startAngle)
-
-      // Create gradient color for the arc (green to white to red)
-      const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0)
-      gradient.addColorStop(0, '#66ff66')
-      gradient.addColorStop(0.5, '#ffffff')
-      gradient.addColorStop(1, '#ff0000')
-
-      // Draw the colored arc depending on the needle's position
-      ctx.beginPath()
-      if (valueFrac <= 0.5) {
-        ctx.arc(centerX, centerY + 25, radius, 1.5 * Math.PI, needleAngle, true)
-        ctx.lineWidth = 13
-        ctx.strokeStyle = gradient
-      } else {
-        ctx.arc(centerX, centerY + 25, radius, 1.5 * Math.PI, needleAngle)
-        ctx.lineWidth = 13
-        ctx.strokeStyle = gradient
-      }
-      ctx.stroke()
-
-      // Draw the needle
-      const needleLength = 120
-      const needleWidth = 4
-      const needleX = centerX + needleLength * Math.cos(needleAngle)
-      const needleY = centerY + 25 + needleLength * Math.sin(needleAngle)
-
-      ctx.beginPath()
-      ctx.moveTo(centerX, centerY + 25)
-      ctx.lineTo(needleX, needleY)
-      ctx.lineWidth = needleWidth
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)'
-      ctx.stroke()
-
-      // Draw the labels
-      ctx.font = '20px Arial'
-      ctx.fillStyle = 'black'
-      ctx.textAlign = 'center'
-
-      ctx.fillText('細胞年齡: ' + props.bioAge, centerX, centerY - radius - 20) // Biological age at top
-      ctx.fillText('實際年齡: ' + props.chroAge, centerX, centerY + radius + 40) // Chronological age at bottom
-      ctx.fillText(minValue, centerX - radius / 2 - 25, centerY + radius / 2 + 25) // Min value on left
-      ctx.fillText(maxValue, centerX + radius / 2 + 25, centerY + radius / 2 + 25) // Max value on right
-
-      // Draw the 'Younger' and 'Older' text
-      ctx.fillText('Younger', centerX - radius + 50, centerY + 35)
-      ctx.fillText('Older', centerX + radius - 40, centerY + 35)
-    }
-
-    onMounted(() => {
-      drawGauge()
+    const scalePosition = computed(() => (age) => {
+      return props.width * 0.1 + (age / 100) * (props.width * 0.8)
     })
 
-    watch(() => [props.bioAge, props.chroAge], () => {
-      drawGauge()
-    })
+    const bioAgePosition = computed(() => scalePosition.value(props.bioAge))
+    const chroAgePosition = computed(() => scalePosition.value(props.chroAge))
+
+    const createPin = (scale) => `
+      M${30 * scale},0 
+      C${13.4 * scale},0 0,${13.4 * scale} 0,${30 * scale} 
+      C0,${51.6 * scale} ${30 * scale},${75 * scale} ${30 * scale},${75 * scale} 
+      C${30 * scale},${75 * scale} ${60 * scale},${51.6 * scale} ${60 * scale},${30 * scale} 
+      C${60 * scale},${13.4 * scale} ${46.6 * scale},0 ${30 * scale},0 
+      Z
+    `
+
+    const bioAgePin = computed(() => createPin(props.width / 500))
+    const chroAgePin = computed(() => createPin(props.width / 500 * 0.6))
 
     return {
-      gauge,
-      drawGauge
+      height,
+      bioAgePosition,
+      chroAgePosition,
+      bioAgePin,
+      chroAgePin
     }
   }
-})
-</script>
-
-<style scoped>
-canvas {
-  display: block;
-  margin: 0;
-  background-color: white;
 }
-</style>
+</script>

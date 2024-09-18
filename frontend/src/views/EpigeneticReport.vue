@@ -1,94 +1,119 @@
 <template>
-  <div class="container">
-    <div class="header">
+  <div class="lucy-report">
+    <header>
       <div class="header-title">
-        <h1>樂稀表觀年齡報告</h1>
+        <h1>樂稀表觀檢測報告</h1>
+        <nav class="report-nav">
+          <a href="#biological-age">生物年齡</a>
+          <a href="#aging-speed">老化速度</a>
+          <a href="#disease-risks">老化疾病風險評估</a>
+        </nav>
         <div class="logo-container">
           <img class="logo" src="@/assets/logo.png" alt="LUCY logo">
-          <p class="logo-text"><b>LUCY</b></p>
+          <b class = "logo-text">LUCY</b>
         </div>
       </div>
-      <div class="header-info">
-        <p>姓名：{{ info.name }}</p>
-        <p>採檢日期：{{ info.collectionDate }}</p>
-        <p>樣本編號：{{ info.sampleId }}</p>
-        <p>報告日期：{{ info.reportDate }}</p>
-      </div>
-    </div>
+    </header>
 
-    <div class="input-section">
-      <input v-model="inputSampleId" placeholder="輸入樣本ID" />
-      <button @click="fetchReport">獲取報告</button>
-    </div>
-
-    <div v-if="reportData">
-      <!-- 生物年齡 section -->
-      <div class="section">
-        <div class="section-title">
-          <h2>生物年齡</h2>
-          <a class="cta" :href="'https://www.facebook.com/sharer.php?u=' + epigeneticClockFigUrl">
-            <img alt="share_button" src="@/assets/share_button.png" width="20">
-          </a>
-        </div>
-        <hr width="100%" size="3" color="#80c2ec" style="margin-top: 0px;">
-        <div class="section-content">
-          <div class="section-text">
-            <p>表觀遺傳時鐘是一種根據DNA甲基化水平來預測生物年齡的工具。根據你的表觀基因，你的生物年齡為{{formattedBioAge}}歲，比你的實際年齡{{olderYounger}}{{diffAge}}歲。</p>
-            <p>{{ olderYoungerComment }}</p>
+    <main :style="{ paddingTop: `90px` }">
+      <div class="user-info">
+        <h2>Information</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">姓名：</span>
+            <span class="info-value">{{ info.name }}</span>
           </div>
-          <div class="section-figure">
-            <GaugeChart :bio-age="formattedBioAge" :chro-age="formattedChroAge" :width="700"/>
+          <div class="info-item">
+            <span class="info-label">樣本編號：</span>
+            <span class="info-value">{{ info.sampleId }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">採檢日期：</span>
+            <span class="info-value">{{ info.collectionDate }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">報告日期：</span>
+            <span class="info-value">{{ info.reportDate }}</span>
           </div>
         </div>
       </div>
+      <div v-if="reportData">
+        <!-- 生物年齡 section -->
+        <section id="biological-age" class="section">
+          <div class="section-title">
+            <h2>生物年齡</h2>
+            <a class="cta" @click.prevent="() => shareSection('biological-age')">
+              <img alt="share_button" src="@/assets/share_button.png" width="20">
+            </a>
+          </div>
+          <hr width="100%" size="3" color="#80c2ec" style="margin-top: 0px;">
+          <div class="section-content">
+            <div class="section-text">
+              <p>表觀遺傳時鐘（Epigenetic Clock）是一種根據DNA甲基化水平來預測生物年齡的工具。DNA甲基化是影響基因表達的化學修飾，隨著年齡增長會發生變化。表觀遺傳時鐘通過測量特定DNA位點的甲基化程度來估算個體的生物年齡，這種方法可用於評估健康狀況、老化速度，甚至預測疾病風險。</p>
+              <p v-html="bioAgeComment"></p>
+            </div>
+            <div class="section-figure">
+              <GaugeChart :bio-age="formattedBioAge" :chro-age="formattedChroAge" :width="450"/>
+            </div>
+          </div>
+        </section>
 
-      <!-- 老化速度 section -->
-      <div class="section">
-        <div class="section-title">
-          <h2>老化速度</h2>
-          <a class="cta" :href="'https://www.facebook.com/sharer.php?u=' + agingSpeedFigUrl">
-            <img alt="share_button" src="@/assets/share_button.png" width="20">
-          </a>
-        </div>
-        <hr width="100%" size="3" color="#80c2ec" style="margin-top: 0px;">
-        <div class="section-content">
-          <div class="section-text">
-            <p>你的老化速度為{{ formattedPaceValue  }}，比{{ pacePrInverse }}％同齡的人老得慢。</p>
-            <p>代表平均一個人老1.0年，你的身體老了{{ formattedPaceValue }}年。數值越低，代表老化速度越慢。</p>
+        <!-- 老化速度 section -->
+        <section id="aging-speed" class="section">
+          <div class="section-title">
+            <h2>老化速度</h2>
+            <a class="cta" :href="'https://www.facebook.com/sharer.php?u=' + agingSpeedFigUrl">
+              <img alt="share_button" src="@/assets/share_button.png" width="20">
+            </a>
           </div>
-          <div class="section-figure">
-            <AgingSpeedPlot :pace-value="formattedPaceValue" :pace-pr="pacePrInverse" />
+          <hr width="100%" size="3" color="#80c2ec" style="margin-top: 0px;">
+          <div class="section-content">
+            <div class="section-text">
+              <p>老化速度是一種測量個體老化速度的指標，基於紐西蘭Dunedin縱向研究的數據發展而來。它利用DNA甲基化的變化來評估身體系統的衰老速率。老化速度能夠顯示”當下”跟同齡人相比老的快還是慢。這個指標幫助研究者和受測者了解老化進程，提供個性化的健康干預建議。</p>
+              <p>老化速度反映的是老化當前動態變化，類似於加速器。即使 一個人Horvath 顯示生物年齡比實際年齡輕，也可能 DunedinPACE 顯示老化速率加快。</p>
+              <p v-html="paceComment"></p>
+            </div>
+            <div class="section-figure">
+              <AgingSpeedPlot :pace-value="formattedPaceValue" :pace-pr="pacePrInverse" :width="450" />
+            </div>
           </div>
-        </div>
-      </div>
+        </section>
 
-      <!-- 老化疾病風險評估 section -->
-      <div class="section">
-        <div class="section-title">
-          <h2>老化疾病風險評估</h2>
-          <a class="cta" :href="'https://www.facebook.com/sharer.php?u=' + diseaseRisksFigUrl">
-            <img alt="share_button" src="@/assets/share_button.png" width="20">
-          </a>
-        </div>
-        <hr width="100%" size="3" color="#80c2ec" style="margin-top: 0px;">
-        <div class="section-content">
-          <div class="section-figure">
-            <disease-risks-table :disease-risks="diseaseRisks"></disease-risks-table>
-            <disease-risks-plot :disease-risks="diseaseRisks"></disease-risks-plot>
+        <!-- 老化疾病風險評估 section -->
+        <section id="disease-risks" class="section">
+          <div class="section-title">
+            <h2>老化疾病風險評估</h2>
+            <a class="cta" :href="'https://www.facebook.com/sharer.php?u=' + diseaseRisksFigUrl">
+              <img alt="share_button" src="@/assets/share_button.png" width="20">
+            </a>
           </div>
-        </div>
+          <hr width="100%" size="3" color="#80c2ec" style="margin-top: 0px;">
+          <div class="section-content">
+            <div class="section-figure">
+              <div class="table-and-description">
+                <disease-risks-table :disease-risks="diseaseRisks"></disease-risks-table>
+                <p>placeholder還不確定這邊的文案放甚麼</p>
+              </div>
+              <disease-risks-plot :disease-risks="diseaseRisks"></disease-risks-plot>
+            </div>
+          </div>
+        </section>
       </div>
-    </div>
+    </main>
+
+    <footer>
+      <p>&copy; {{ new Date().getFullYear() }} LUCY. All rights reserved.</p>
+    </footer>
   </div>
 </template>
 
 <script>
-import { ref, reactive, computed } from 'vue'
-import GaugeChart from '@/components/GaugeChart2.vue'
+import { ref, reactive, computed, onMounted } from 'vue'
+import html2canvas from 'html2canvas'
+import GaugeChart from '@/components/GaugeChart.vue'
 import AgingSpeedPlot from '@/components/AgingSpeedPlot.vue'
 import DiseaseRisksTable from '@/components/DiseaseRisksTable.vue'
 import DiseaseRisksPlot from '@/components/DiseaseRisksPlot.vue'
-import axios from 'axios'
 
 export default {
   name: 'EpigeneticReport',
@@ -99,7 +124,6 @@ export default {
     DiseaseRisksPlot
   },
   setup () {
-    const inputSampleId = ref('')
     const reportData = ref(null)
     const info = reactive({
       name: '',
@@ -144,30 +168,82 @@ export default {
       return Math.abs(Math.round((bioAge.value - chroAge.value) * 100) / 100)
     })
 
-    const olderYounger = computed(() => {
-      return bioAge.value > chroAge.value ? '老' : '年輕'
+    const bioAgeComment = computed(() => {
+      const ageDifference = bioAge.value - chroAge.value
+      const baseMessage = `根據你的表觀遺傳訊息，你的生物年齡為<strong>${formattedBioAge.value}</strong>歲`
+
+      if (Math.abs(ageDifference) < 2) {
+        return `${baseMessage}。你的身體狀況與同齡人相比處於平均水平，這是一個良好的跡象。為了進一步優化健康狀況，你可以專注於一些小的改變，例如增加高強度的運動訓練，或者更加規律地進行壓力管理，這將有助於進一步提升你的健康指數。`
+      } else {
+        const ageComparisonMessage = `，比你的實際年齡${formattedChroAge.value}歲要${ageDifference < 0 ? '年輕' : '老'}了<strong>${diffAge.value}</strong>歲。`
+
+        if (ageDifference < 0) {
+          return `${baseMessage}${ageComparisonMessage}恭喜你！代表跟同年齡的相比，統計上你有更長的餘命。這意味著你擁有健康的生活方式，讓你的生理機能維持在更年輕的水平。繼續保持這種積極的健康習慣，這將有助於進一步延緩老化速度，增強身體韌性和抵抗疾病的能力。保持這種正向的生活方式，例如規律運動、健康飲食、良好的睡眠和壓力管理，將能進一步鞏固你的健康優勢，延長壽命。`
+        } else {
+          return `${baseMessage}${ageComparisonMessage}這可能表明你的身體正在承受更多的壓力或生活方式需要進行一定的調整，這將影響到你的整體健康。不要擔心，這是一個改善健康的好機會！你可以從一些關鍵生活領域開始進行調整，例如減少壓力、增加有氧運動、改善飲食結構，以及更加規律的睡眠習慣。這些變化將有助於降低你的生物年齡，讓你在未來的健康評估中獲得更積極的結果。`
+        }
+      }
     })
 
-    const olderYoungerComment = computed(() => {
-      return bioAge.value < chroAge.value
-        ? '恭喜你！代表跟同年齡的相比，統計上你有更長的餘命。'
-        : '糟糕了！與同齡人相比起來統計上有較短的餘命。'
+    const paceComment = computed(() => {
+      const pace = formattedPaceValue.value
+      let comment = `你的老化速度為<strong>${pace}</strong>，比<strong>${pacePrInverse.value}%</strong>同齡的人老得慢。代表平均一個人老1.0年，你的身體老了<strong>${pace}</strong>年。數值越低，代表老化速度越慢。<br><br>`
+
+      if (pace >= 0.97 && pace <= 1.03) {
+        comment += '你的老化速度處於<strong>正常範圍</strong>。這意味著你的老化速度與年齡增長的速度基本一致。'
+      } else if (pace > 1.03 && pace < 1.2) {
+        comment += '你的老化速度<strong>略快於正常</strong>。這表示你的衰老速度稍微加快，可能需要關注一些生活方式的調整。'
+      } else if (pace >= 1.2) {
+        comment += '你的老化速度<strong>明顯加快</strong>。這表示衰老速度加快，生理功能退化的風險增加。建議你積極採取措施改善生活方式，以減緩老化速度。'
+      } else if (pace < 0.97 && pace > 0.8) {
+        comment += '你的老化速度<strong>略慢於正常</strong>。這是一個好現象，表明你的生活方式可能對健康有積極影響。'
+      } else if (pace <= 0.8) {
+        comment += '你的老化速度<strong>明顯減緩</strong>。這表明你的衰老速度比正常人慢，潛在的健康風險降低。繼續保持良好的生活習慣，有助於維持這種優勢。'
+      }
+
+      return comment
     })
 
     const pacePrInverse = computed(() => {
       return 100 - pacePr.value
     })
 
-    const fetchReport = async () => {
+    const shareSection = async (sectionId) => {
       try {
-        const response = await axios.get(`http://127.0.0.1:8000/report/${inputSampleId.value}`)
-        reportData.value = response.data
-        updateReportData()
+        const element = document.getElementById(`${sectionId}`)
+        if (!element) {
+          console.error(`Element with id ${sectionId}-section not found`)
+          return
+        }
+
+        const canvas = await html2canvas(element)
+        const imageData = canvas.toDataURL('image/png')
+
+        // 創建分享 URL
+        const getShareUrl = () => {
+          if (process.env.NODE_ENV === 'development') {
+            return 'https://your-production-domain.com/epigenetic-report'
+          }
+          return window.location.href
+        }
+        const url = encodeURIComponent(getShareUrl())
+        const shareUrl = `https://www.facebook.com/sharer.php?u=${url}&picture=${encodeURIComponent(imageData)}`
+
+        // 在新窗口中打開分享鏈接
+        window.open(shareUrl, '_blank')
       } catch (error) {
-        console.error('Error fetching report:', error)
-        // 在這裡處理錯誤，例如顯示錯誤消息給用戶
+        console.error('Error generating or sharing image:', error)
       }
     }
+
+    onMounted(() => {
+      // 從 localStorage 獲取報告數據
+      const storedReportData = localStorage.getItem('reportData')
+      if (storedReportData) {
+        reportData.value = JSON.parse(storedReportData)
+        updateReportData()
+      }
+    })
 
     const updateReportData = () => {
       if (reportData.value) {
@@ -183,7 +259,6 @@ export default {
     }
 
     return {
-      inputSampleId,
       reportData,
       info,
       bioAge,
@@ -198,50 +273,172 @@ export default {
       agingSpeedFigUrl,
       diseaseRisksFigUrl,
       diffAge,
-      olderYounger,
-      olderYoungerComment,
+      bioAgeComment,
       pacePrInverse,
-      fetchReport
+      paceComment,
+      shareSection
     }
   }
 }
 </script>
 
 <style scoped>
-.input-section {
-  margin: 20px 0;
+.lucy-report {
   display: flex;
-  justify-content: center;
-  gap: 10px;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
-.input-section input {
-  padding: 5px 10px;
-  font-size: 16px;
+header {
+  width:100%;
+  position: fixed;
 }
 
-.input-section button {
-  padding: 5px 15px;
-  font-size: 16px;
-  background-color: #4CAF50;
+.header-title {
+  display: flex;
   color: white;
-  border: none;
-  cursor: pointer;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 5% 5px;
+  position: fixed;
+  width: -webkit-fill-available;
+  background-color: #3498db;
 }
 
-.input-section button:hover {
-  background-color: #45a049;
+.header-title h1 {
+  font-size: 30px;
+  font-family: 'Noto Sans TC', sans-serif;
+  color: #ffffff;
+  margin: 0;
+  flex: 2;
+}
+
+.report-nav {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+  justify-content: center;
+}
+
+.report-nav a {
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.report-nav a:hover {
+  text-decoration: underline;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.logo {
+  width: 60px;
+  height: 60px;
+}
+
+.logo-text {
+  font-size: 40px;
+  font-family: 'Nova Mono', sans-serif;
+  color: #ffffff;
+}
+
+.user-info {
+  background-color: #f1f8ff;
+  border-radius: 10px;
+  margin: 0 5% -70px;
+  padding: 10px 15px;
+}
+
+.user-info h2 {
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  margin: 0 0 10px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.info-item {
+  display: flex;
+}
+
+.info-label {
+  font-weight: bold;
+  color: #3498db;
+  font-family: 'Noto Sans TC', sans-serif;
+}
+
+.info-value {
+  font-family: 'Noto Sans TC', 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+main {
+  flex: 1;
+}
+
+.section {
+  margin-bottom: -90px;
+  padding: 90px 5% 0;
+}
+
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-title h2 {
+  font-family: 'Noto Sans TC', sans-serif;
+  color: #3498db;
+  margin: 0;
+}
+
+.section-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Noto Sans TC', sans-serif;
+  color: #262626;
+}
+
+.table-and-description {
+  flex: 1;
 }
 
 .section-figure {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   width: 100%;
-  margin-top: 20px;
   flex-wrap: wrap;
   justify-content: space-around;
 }
 
-/* 其他現有的樣式... */
+footer {
+  text-align: center;
+  margin-top: 80px;
+  color: #7f8c8d;
+  font-size: 0.9em;
+}
+
+.cta {
+  padding: 0.5% 1%;
+  color: #303030;
+  text-decoration: none;
+  border-radius: 5px;
+  margin-bottom: 2px;
+}
+
+.cta:hover {
+  background: #a9deff;
+}
+
+/* 保留其他原有的樣式... */
 </style>
