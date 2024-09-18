@@ -1,14 +1,18 @@
-// frontend/src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import EpigeneticReport from '@/views/EpigeneticReport.vue'
+import FetchReport from '@/views/FetchReport.vue'
+import EpigeneticReport from '@/views/EpigeneticReport2.vue'
 
 const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: EpigeneticReport
+    name: 'FetchReport',
+    component: FetchReport
   },
-  // Add more routes as needed
+  {
+    path: '/report/:id',
+    name: 'ReportDisplay',
+    component: EpigeneticReport
+  }
 ]
 
 const router = createRouter({

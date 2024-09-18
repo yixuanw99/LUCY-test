@@ -37,7 +37,7 @@
             <p>{{ olderYoungerComment }}</p>
           </div>
           <div class="section-figure">
-            <GaugeChart :bio-age="formattedBioAge" :chro-age="formattedChroAge" :width="1000"/>
+            <GaugeChart :bio-age="formattedBioAge" :chro-age="formattedChroAge" :width="700"/>
           </div>
         </div>
       </div>
