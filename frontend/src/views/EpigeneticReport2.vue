@@ -42,7 +42,7 @@
         <section id="biological-age" class="section">
           <div class="section-title">
             <h2>生物年齡</h2>
-            <a class="cta" :href="'https://www.facebook.com/sharer.php?u=' + epigeneticClockFigUrl">
+            <a class="cta" @click.prevent="() => shareSection('biological-age')">
               <img alt="share_button" src="@/assets/share_button.png" width="20">
             </a>
           </div>
@@ -109,6 +109,7 @@
 
 <script>
 import { ref, reactive, computed, onMounted } from 'vue'
+import html2canvas from 'html2canvas'
 import GaugeChart from '@/components/GaugeChart2.vue'
 import AgingSpeedPlot from '@/components/AgingSpeedPlot.vue'
 import DiseaseRisksTable from '@/components/DiseaseRisksTable.vue'
@@ -207,6 +208,34 @@ export default {
       return 100 - pacePr.value
     })
 
+    const shareSection = async (sectionId) => {
+      try {
+        const element = document.getElementById(`${sectionId}`)
+        if (!element) {
+          console.error(`Element with id ${sectionId}-section not found`)
+          return
+        }
+
+        const canvas = await html2canvas(element)
+        const imageData = canvas.toDataURL('image/png')
+
+        // 創建分享 URL
+        const getShareUrl = () => {
+          if (process.env.NODE_ENV === 'development') {
+            return 'https://your-production-domain.com/epigenetic-report'
+          }
+          return window.location.href
+        }
+        const url = encodeURIComponent(getShareUrl())
+        const shareUrl = `https://www.facebook.com/sharer.php?u=${url}&picture=${encodeURIComponent(imageData)}`
+
+        // 在新窗口中打開分享鏈接
+        window.open(shareUrl, '_blank')
+      } catch (error) {
+        console.error('Error generating or sharing image:', error)
+      }
+    }
+
     onMounted(() => {
       // 從 localStorage 獲取報告數據
       const storedReportData = localStorage.getItem('reportData')
@@ -246,7 +275,8 @@ export default {
       diffAge,
       bioAgeComment,
       pacePrInverse,
-      paceComment
+      paceComment,
+      shareSection
     }
   }
 }
