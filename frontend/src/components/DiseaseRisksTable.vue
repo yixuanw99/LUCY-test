@@ -47,6 +47,7 @@ export default {
 <style scoped>
 .overflow-x-auto {
   overflow-x: auto;
+  flex: 1;
 }
 table {
   border-collapse: collapse;

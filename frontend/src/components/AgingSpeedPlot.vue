@@ -1,28 +1,28 @@
 <template>
-  <svg :width="width" :height="height" viewBox="0 0 400 300">
+  <svg :width="width" :height="height" :viewBox="`0 0 400 300`">
     <!-- 背景和坐標軸 -->
-    <rect x="0" y="0" :width="width" :height="height" fill="#ffffff" />
-    <line x1="50" :y1="height - 50" x2="350" :y2="height - 50" stroke="black" />
+    <rect x="0" y="0" width="400" height="300" fill="#ffffff" />
+    <line x1="50" y1="250" x2="350" y2="250" stroke="black" />
 
     <!-- 正態分佈曲線 -->
     <path :d="normalDistributionPath" fill="#a2def4" stroke="none" />
 
     <!-- X軸刻度 -->
     <g v-for="tick in xAxisTicks" :key="tick">
-      <text :x="xScale(tick)" :y="height - 25" text-anchor="middle">{{ tick }}</text>
+      <text :x="xScale(tick)" y="275" text-anchor="middle">{{ tick }}</text>
     </g>
 
     <!-- 標記線和文字 -->
-    <line :x1="xScale(paceValue)" y1="90" :x2="xScale(paceValue)" :y2="height - 50" stroke="black" stroke-dasharray="5,5" />
+    <line :x1="xScale(paceValue)" y1="90" :x2="xScale(paceValue)" y2="250" stroke="black" stroke-dasharray="5,5" />
     <circle :cx="xScale(paceValue)" cy="90" r="3" fill="black" />
     <circle :cx="xScale(paceValue)" cy="250" r="3" fill="black" />
     <circle :cx="xScale(paceValue) + 165" cy="140" r="3" fill="black" />
-    <line :x1="xScale(paceValue)" y1="140" :x2="xScale(paceValue) + 165" :y2="140" stroke="black" stroke-dasharray="5,5" />
+    <line :x1="xScale(paceValue)" y1="140" :x2="xScale(paceValue) + 165" y2="140" stroke="black" stroke-dasharray="5,5" />
     <text :x="xScale(paceValue)" y="70" text-anchor="middle" font-weight="bold">{{ paceValue }}</text>
-    <text :x="xScale(paceValue) + 5" :y="130" font-size="14" fill="black">你比{{ pacePr }}%同齡的人老得慢</text>
+    <text :x="xScale(paceValue) + 5" y="130" font-size="14" fill="black">你比{{ pacePr }}%同齡的人老得慢</text>
 
     <!-- X軸標籤 -->
-    <text x="200" :y="height - 5" text-anchor="middle">你的老化速度</text>
+    <text x="200" y="295" text-anchor="middle">你的老化速度</text>
   </svg>
 </template>
 
@@ -43,13 +43,11 @@ export default {
     width: {
       type: Number,
       default: 400
-    },
-    height: {
-      type: Number,
-      default: 300
     }
   },
   setup (props) {
+    const height = computed(() => props.width * 0.75) // 保持 4:3 的寬高比
+
     const normalDistribution = (x, mean = 1, stdDev = 0.2) => {
       return Math.exp(-0.5 * Math.pow((x - mean) / stdDev, 2)) / (stdDev * Math.sqrt(2 * Math.PI))
     }
@@ -68,6 +66,7 @@ export default {
     const xAxisTicks = ref([0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0])
 
     return {
+      height,
       normalDistributionPath,
       xScale,
       xAxisTicks

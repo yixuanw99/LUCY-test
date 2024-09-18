@@ -99,6 +99,7 @@ export default defineComponent({
   width: 100%;
   max-width: 600px;
   height: 400px;
-  margin: 0 auto;
+  margin: 0;
+  flex: 1;
 }
 </style>
