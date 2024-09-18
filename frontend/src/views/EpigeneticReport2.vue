@@ -46,7 +46,7 @@
               <img alt="share_button" src="@/assets/share_button.png" width="20">
             </a>
           </div>
-          <hr width="100%" size="3" color="#80c2ec">
+          <hr width="100%" size="3" color="#80c2ec" style="margin-top: 0px;">
           <div class="section-content">
             <div class="section-text">
               <p>表觀遺傳時鐘（Epigenetic Clock）是一種根據DNA甲基化水平來預測生物年齡的工具。DNA甲基化是影響基因表達的化學修飾，隨著年齡增長會發生變化。表觀遺傳時鐘通過測量特定DNA位點的甲基化程度來估算個體的生物年齡，這種方法可用於評估健康狀況、老化速度，甚至預測疾病風險。</p>
