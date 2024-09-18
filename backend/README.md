@@ -1,55 +1,76 @@
 # Backend
 
-This is the backend for the LUCY-test project.
+This is the backend for the LUCY-test project, an epigenetic analysis system.
 
 ## Setup
 
-1. Create a virtual environment:
-   ```
-   python -m venv venv
-   ```
+1. Configure environment variables:
+   - Copy `.env.example` to `.env.development` and `.env.production`
+   - Update the variables in these files according to your development and production environments
 
-2. Activate the virtual environment:
-   - On Windows:
-     ```
-     venv\Scripts\activate
-     ```
-   - On macOS and Linux:
-     ```
-     source venv/bin/activate
-     ```
+## Data Preparation
 
-3. Install dependencies:
+1. Place IDAT files in the correct directory:
    ```
-   pip install -r requirements.txt
+   data/raw/run1/
    ```
 
-4. Set up the database:
+2. Prepare the Sample Sheet (CSV file) with the following columns:
+   - Sample_Name
+   - Sentrix_ID
+   - Sentrix_Position
+   - customer (should match user names in the database)
+
+3. Place the Sample Sheet in:
    ```
-   alembic upgrade head
+   data/raw/run1/Sample_Sheet.csv
    ```
 
-## Running the server
+## User Creation
 
-To run the server, use the following command:
+Before importing sample data, you need to create user accounts in the database. You can do this using the API endpoint:
 
-```
-uvicorn app.main:app --reload
-```
+1. Ensure the backend server is running.
 
-The API will be available at `http://localhost:8000`.
+2. Use a tool like PowerShell or curl to send a POST request to create a user. Here's an example using PowerShell:
 
-## Running tests
+   ```powershell
+   $body = @{
+       name = "Yi-Hsuan Wu"
+       email = "yixuan@gmail.com"
+       password = "password123123"
+       birthday = "1997-02-12"
+       phone_number = "0933615427"
+   } | ConvertTo-Json
 
-To run the tests, use the following command:
+   $headers = @{
+       "Content-Type" = "application/json"
+   }
 
-```
-pytest
-```
+   Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/v1/users/" -Method Post -Body $body -Headers $headers
+   ```
 
-## API Documentation
+   Adjust the user details as needed for each user you want to create.
 
-Once the server is running, you can access the API documentation at:
+3. Repeat this process for all users that need to be in the system before importing samples.
 
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+## Initial Data Import
+
+1. After creating the necessary user accounts, run the sample import script:
+   ```
+   python backend/scripts/import_samples.py
+   ```
+   This will populate the SampleData table with information from the Sample Sheet.
+
+## Generating Reports
+
+To generate reports for the imported samples:
+
+1. Ensure all required R scripts and libraries are installed and properly configured.
+
+2. Run the report generation script:
+   ```
+   python app/services/report_generator.py
+   ```
+   This script will:
+   -
