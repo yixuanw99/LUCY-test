@@ -554,5 +554,22 @@ footer {
   border-radius: 5px;
 }
 
+@media (max-width: 768px) {
+  .section-content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .section-figure {
+    width: 100%;
+  }
+
+  /* Adjust the GaugeChart, AgingSpeedPlot, and other components to be responsive */
+  .section-figure :deep(svg) {
+    width: 100% !important;
+    height: auto !important;
+  }
+}
+
 /* 保留其他原有的樣式... */
 </style>
