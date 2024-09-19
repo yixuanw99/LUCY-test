@@ -118,7 +118,6 @@
             </div>
           </div>
         </section>
-        <button>Share<i class="fas fa-share-alt"></i></button>
       </div>
     </main>
 
