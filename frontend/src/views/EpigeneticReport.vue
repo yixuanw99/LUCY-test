@@ -109,6 +109,7 @@
 
 <script>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import html2canvas from 'html2canvas'
 import GaugeChart from '@/components/GaugeChart.vue'
 import AgingSpeedPlot from '@/components/AgingSpeedPlot.vue'
@@ -236,13 +237,31 @@ export default {
       }
     }
 
-    onMounted(() => {
-      // 從 localStorage 獲取報告數據
-      const storedReportData = localStorage.getItem('reportData')
-      if (storedReportData) {
-        reportData.value = JSON.parse(storedReportData)
-        updateReportData()
+    // onMounted(() => {
+    //   // 從 localStorage 獲取報告數據
+    //   const storedReportData = localStorage.getItem('reportData')
+    //   if (storedReportData) {
+    //     reportData.value = JSON.parse(storedReportData)
+    //     updateReportData()
+    //   }
+    // })
+
+    const route = useRoute()
+    const reportIndex = parseInt(route.params.id || '0', 10)
+
+    onMounted(async () => {
+      if (process.env.NODE_ENV === 'production') {
+        const response = await fetch(process.env.BASE_URL + 'mockdata/mock-data.json')
+        const mockData = await response.json()
+        reportData.value = mockData.reports[reportIndex] // 使用傳遞的索引
+      } else {
+        // 在開發環境中從localStorage獲取報告數據
+        const storedReportData = localStorage.getItem('reportData')
+        if (storedReportData) {
+          reportData.value = JSON.parse(storedReportData)
+        }
       }
+      updateReportData()
     })
 
     const updateReportData = () => {
