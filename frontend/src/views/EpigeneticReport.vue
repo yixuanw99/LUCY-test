@@ -9,7 +9,7 @@
           <a href="#disease-risks">老化疾病風險評估</a>
         </nav>
         <div class="logo-container">
-          <a href="https://lucyhealth.com.tw/" target="_blank">
+          <a href="https://lucyhealth.com.tw/" target="_blank" rel="noopener noreferrer">
             <img class="logo" src="@/assets/logo.png" alt="LUCY logo">
             <b class = "logo-text">LUCY</b>
           </a>
@@ -45,9 +45,9 @@
           <div class="section-title">
             <h2>生物年齡</h2>
             <div class="section-actions">
-              <a class="cta" :href="'https://www.facebook.com/sharer.php?u=' + epigeneticClockFigUrl">
+              <button class="share-button" @click="shareSection('biological-age')" :disabled="isGeneratingImage">
                 <img alt="share_button" src="@/assets/share_button.png" width="20">
-              </a>
+              </button>
               <button class="download-button" @click="downloadSectionImage('biological-age')"
                       :disabled="isGeneratingImage">
                 {{ isGeneratingImage ? '生成圖片中...' : '下載圖片' }}
@@ -83,7 +83,7 @@
           <hr width="100%" size="3" color="#80c2ec" style="margin-top: 0px;">
           <div class="section-content">
             <div class="section-text">
-              <p>老化速度是一種測量個體老化速度的指標，基於紐西蘭Dunedin縱向研究的數據發展而來。它利用DNA甲基化的變化來評估身體系統的衰老速率。老化速度能夠顯示”當下”跟同齡人相比老的快還是慢。這個指標幫助研究者和受測者了解老化進程，提供個性化的健康干預建議。</p>
+              <p>老化速度是一種測量個體老化速度的指標，基於紐西蘭Dunedin縱向研究的數據發展而來。它利用DNA甲基化的變化來評估身體系統的衰老速率。老化速度能夠顯示”當下”跟同齡人相比老的快還是慢。這個指標幫助研究者和受測者瞭解老化進程，提供個性化的健康幹預建議。</p>
               <p>老化速度反映的是老化當前動態變化，類似於加速器。即使 一個人Horvath 顯示生物年齡比實際年齡輕，也可能 DunedinPACE 顯示老化速率加快。</p>
               <p v-html="paceComment"></p>
             </div>
@@ -118,6 +118,7 @@
             </div>
           </div>
         </section>
+        <button>Share<i class="fas fa-share-alt"></i></button>
       </div>
     </main>
 
@@ -231,38 +232,64 @@ export default {
 
     const isGeneratingImage = ref(false)
 
-    const downloadSectionImage = async (sectionId) => {
+    const generateSectionImage = async (sectionId) => {
       isGeneratingImage.value = true
       try {
         const element = document.getElementById(sectionId)
         if (!element) {
           console.error(`Element with id ${sectionId} not found`)
-          return
+          return null
         }
 
         const canvas = await html2canvas(element)
-
-        // 将 canvas 转换为 Blob
-        canvas.toBlob((blob) => {
-          // 创建一个 URL 对象
-          const url = URL.createObjectURL(blob)
-
-          // 创建一个临时的 a 标签来触发下载
-          const link = document.createElement('a')
-          link.href = url
-          link.download = `${sectionId}-report.png`
-          document.body.appendChild(link)
-          link.click()
-
-          // 清理
-          document.body.removeChild(link)
-          URL.revokeObjectURL(url)
-        }, 'image/png')
+        return canvas
       } catch (error) {
         console.error('Error generating image:', error)
+        return null
       } finally {
         isGeneratingImage.value = false
       }
+    }
+
+    const downloadSectionImage = async (sectionId) => {
+      const canvas = await generateSectionImage(sectionId)
+      if (!canvas) return
+
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `${sectionId}-report.png`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+      }, 'image/png')
+    }
+
+    const shareSection = async (sectionId) => {
+      const canvas = await generateSectionImage(sectionId)
+      if (!canvas) return
+
+      canvas.toBlob(async (blob) => {
+        const file = new File([blob], `${sectionId}-report.png`, { type: 'image/png' })
+
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: '樂稀表觀檢測報告',
+              text: `查看我的${sectionId}報告結果！`
+            })
+            console.log('Successfully shared')
+          } catch (error) {
+            console.error('Error sharing:', error)
+          }
+        } else {
+          console.log('Web Share API not supported')
+          // 可以在這裏添加一個後備方案，比如複製鏈接到剪貼板
+        }
+      }, 'image/png')
     }
 
     // onMounted(() => {
@@ -324,7 +351,8 @@ export default {
       pacePrInverse,
       paceComment,
       isGeneratingImage,
-      downloadSectionImage
+      downloadSectionImage,
+      shareSection
     }
   }
 }
@@ -507,6 +535,18 @@ footer {
   border: none;
   font-size: 15px;
   font-family: 'Noto Sans TC', sans-serif;
+}
+
+.share-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.share-button:hover {
+  background: #a9deff;
+  border-radius: 5px;
 }
 
 /* 保留其他原有的樣式... */
