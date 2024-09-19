@@ -9,8 +9,10 @@
           <a href="#disease-risks">老化疾病風險評估</a>
         </nav>
         <div class="logo-container">
-          <img class="logo" src="@/assets/logo.png" alt="LUCY logo">
-          <b class = "logo-text">LUCY</b>
+          <a href="https://lucyhealth.com.tw/" target="_blank">
+            <img class="logo" src="@/assets/logo.png" alt="LUCY logo">
+            <b class = "logo-text">LUCY</b>
+          </a>
         </div>
       </div>
     </header>
@@ -381,6 +383,13 @@ header {
   align-items: center;
   flex: 1;
   justify-content: flex-end;
+}
+
+.logo-container a {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  text-decoration: none;
 }
 
 .logo {
