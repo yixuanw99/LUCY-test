@@ -231,6 +231,7 @@ export default {
     })
 
     const isGeneratingImage = ref(false)
+    const shareMessage = ref('')
 
     const generateSectionImage = async (sectionId) => {
       isGeneratingImage.value = true
@@ -282,12 +283,15 @@ export default {
               text: `查看我的${sectionId}報告結果！`
             })
             console.log('Successfully shared')
+            shareMessage.value = '分享成功！'
           } catch (error) {
             console.error('Error sharing:', error)
+            shareMessage.value = '分享失敗，請稍後再試。'
           }
         } else {
           console.log('Web Share API not supported')
-          // 可以在這裏添加一個後備方案，比如複製鏈接到剪貼板
+          shareMessage.value = '瀏覽器不支援一鍵分享功能，已下載圖檔'
+          await downloadSectionImage(sectionId)
         }
       }, 'image/png')
     }
@@ -352,7 +356,8 @@ export default {
       paceComment,
       isGeneratingImage,
       downloadSectionImage,
-      shareSection
+      shareSection,
+      shareMessage
     }
   }
 }
