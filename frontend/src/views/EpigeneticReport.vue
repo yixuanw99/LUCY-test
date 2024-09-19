@@ -42,9 +42,15 @@
         <section id="biological-age" class="section">
           <div class="section-title">
             <h2>生物年齡</h2>
-            <a class="cta" @click.prevent="() => shareSection('biological-age')">
-              <img alt="share_button" src="@/assets/share_button.png" width="20">
-            </a>
+            <div class="section-actions">
+              <a class="cta" :href="'https://www.facebook.com/sharer.php?u=' + epigeneticClockFigUrl">
+                <img alt="share_button" src="@/assets/share_button.png" width="20">
+              </a>
+              <button class="download-button" @click="downloadSectionImage('biological-age')"
+                      :disabled="isGeneratingImage">
+                {{ isGeneratingImage ? '生成圖片中...' : '下載圖片' }}
+              </button>
+            </div>
           </div>
           <hr width="100%" size="3" color="#80c2ec" style="margin-top: 0px;">
           <div class="section-content">
@@ -62,9 +68,15 @@
         <section id="aging-speed" class="section">
           <div class="section-title">
             <h2>老化速度</h2>
-            <a class="cta" :href="'https://www.facebook.com/sharer.php?u=' + agingSpeedFigUrl">
-              <img alt="share_button" src="@/assets/share_button.png" width="20">
-            </a>
+            <div class="section-actions">
+              <a class="cta" :href="'https://www.facebook.com/sharer.php?u=' + agingSpeedFigUrl">
+                <img alt="share_button" src="@/assets/share_button.png" width="20">
+              </a>
+              <button class="download-button" @click="downloadSectionImage('aging-speed')"
+                      :disabled="isGeneratingImage">
+                {{ isGeneratingImage ? '生成圖片中...' : '下載圖片' }}
+              </button>
+            </div>
           </div>
           <hr width="100%" size="3" color="#80c2ec" style="margin-top: 0px;">
           <div class="section-content">
@@ -83,9 +95,15 @@
         <section id="disease-risks" class="section">
           <div class="section-title">
             <h2>老化疾病風險評估</h2>
-            <a class="cta" :href="'https://www.facebook.com/sharer.php?u=' + diseaseRisksFigUrl">
-              <img alt="share_button" src="@/assets/share_button.png" width="20">
-            </a>
+            <div class="section-actions">
+              <a class="cta" :href="'https://www.facebook.com/sharer.php?u=' + diseaseRisksFigUrl">
+                <img alt="share_button" src="@/assets/share_button.png" width="20">
+              </a>
+              <button class="download-button" @click="downloadSectionImage('disease-risks')"
+                      :disabled="isGeneratingImage">
+                {{ isGeneratingImage ? '生成圖片中...' : '下載圖片' }}
+              </button>
+            </div>
           </div>
           <hr width="100%" size="3" color="#80c2ec" style="margin-top: 0px;">
           <div class="section-content">
@@ -209,31 +227,39 @@ export default {
       return 100 - pacePr.value
     })
 
-    const shareSection = async (sectionId) => {
+    const isGeneratingImage = ref(false)
+
+    const downloadSectionImage = async (sectionId) => {
+      isGeneratingImage.value = true
       try {
-        const element = document.getElementById(`${sectionId}`)
+        const element = document.getElementById(sectionId)
         if (!element) {
-          console.error(`Element with id ${sectionId}-section not found`)
+          console.error(`Element with id ${sectionId} not found`)
           return
         }
 
         const canvas = await html2canvas(element)
-        const imageData = canvas.toDataURL('image/png')
 
-        // 創建分享 URL
-        const getShareUrl = () => {
-          if (process.env.NODE_ENV === 'development') {
-            return 'https://your-production-domain.com/epigenetic-report'
-          }
-          return window.location.href
-        }
-        const url = encodeURIComponent(getShareUrl())
-        const shareUrl = `https://www.facebook.com/sharer.php?u=${url}&picture=${encodeURIComponent(imageData)}`
+        // 将 canvas 转换为 Blob
+        canvas.toBlob((blob) => {
+          // 创建一个 URL 对象
+          const url = URL.createObjectURL(blob)
 
-        // 在新窗口中打開分享鏈接
-        window.open(shareUrl, '_blank')
+          // 创建一个临时的 a 标签来触发下载
+          const link = document.createElement('a')
+          link.href = url
+          link.download = `${sectionId}-report.png`
+          document.body.appendChild(link)
+          link.click()
+
+          // 清理
+          document.body.removeChild(link)
+          URL.revokeObjectURL(url)
+        }, 'image/png')
       } catch (error) {
-        console.error('Error generating or sharing image:', error)
+        console.error('Error generating image:', error)
+      } finally {
+        isGeneratingImage.value = false
       }
     }
 
@@ -295,7 +321,8 @@ export default {
       bioAgeComment,
       pacePrInverse,
       paceComment,
-      shareSection
+      isGeneratingImage,
+      downloadSectionImage
     }
   }
 }
@@ -447,16 +474,30 @@ footer {
   font-size: 0.9em;
 }
 
-.cta {
-  padding: 0.5% 1%;
+.section-actions {
+  display: flex;
+  gap: 10px;  /* 在按鈕之間添加一些間距 */
+  align-items: center;
+}
+
+.cta, .download-button {
+  padding: 1.5% 0 0.5%;
   color: #303030;
   text-decoration: none;
   border-radius: 5px;
-  margin-bottom: 2px;
+  cursor: pointer;
 }
 
-.cta:hover {
+.cta:hover, .download-button:hover {
   background: #a9deff;
+}
+
+.download-button {
+  padding-bottom: 5px;
+  background: none;
+  border: none;
+  font-size: 15px;
+  font-family: 'Noto Sans TC', sans-serif;
 }
 
 /* 保留其他原有的樣式... */
