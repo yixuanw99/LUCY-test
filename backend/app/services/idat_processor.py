@@ -9,6 +9,8 @@ from pathlib import Path
 import sys
 project_root = Path(__file__).resolve().parents[2]
 sys.path.append(str(project_root))
+import io
+from app.services.gcs_storage import GCSStorage
 from app.db.session import SessionLocal
 from app.db import models
 
@@ -19,6 +21,7 @@ class IDATProcessor:
         self.backend_root = Path(__file__).resolve().parents[2]
         self.r_script_path = settings.CHAMP_R_SCRIPT_PATH
         self.r_executable = settings.R_EXECUTABLE
+        self.gcs_storage = GCSStorage()
 
     def process_idat(self, pd_file_path, idat_file_path) -> pd.DataFrame:
         '''
@@ -102,11 +105,16 @@ class IDATProcessor:
         :param batch_name: 樣本名稱，用於生成文件名
         :return: 保存的文件的相對路徑
         '''
-        processed_beta_table_dir = self.backend_root / 'data' / 'processed_beta_table'
-        output_file = processed_beta_table_dir / f"{batch_name}_processed.csv"
-        beta_table_rmdup.to_csv(output_file, index=True)
-        self.logger.info(f"Processed data saved to {output_file}")
-        relative_path = output_file.relative_to(self.backend_root).as_posix()
+        gcs_path = f"data/processed_beta_table/{batch_name}_processed.csv"
+
+        # 將 DataFrame 轉換為 CSV 格式的字符串
+        csv_buffer = io.StringIO()
+        beta_table_rmdup.to_csv(csv_buffer, index=True)
+        csv_string = csv_buffer.getvalue()
+
+        # 直接上傳字符串內容到 GCS
+        gcs_url = self.gcs_storage.upload_string(csv_string, gcs_path)
+        self.logger.info(f"Processed data saved to GCS: {gcs_url}")
         
         # Update database
         db = SessionLocal()
@@ -124,7 +132,7 @@ class IDATProcessor:
             for sample_name in sample_names:
                 sample = sample_map.get(sample_name)
                 if sample:
-                    sample.processed_beta_table_path = relative_path
+                    sample.processed_beta_table_path = gcs_url
                 else:
                     self.logger.warning(f"Sample with name {sample_name} not found in database")
             
@@ -136,7 +144,7 @@ class IDATProcessor:
         finally:
             db.close()
         
-        return relative_path
+        return gcs_url
 
 
 if __name__ == "__main__":

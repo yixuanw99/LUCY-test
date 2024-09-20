@@ -4,6 +4,8 @@ import logging
 import os
 import subprocess
 import json
+import io
+from app.services.gcs_storage import GCSStorage
 from app.core.config import settings
 from pathlib import Path
 import sys
@@ -23,6 +25,7 @@ class EpigenTLProcessor:
         self.resource_dir = self.backend_root / 'app' / 'resources'
         self.probes_file = self.resource_dir / 'model_probes' / 'EpigenTL_probes.csv'
         self.ex_sample_file = self.resource_dir / 'model_probes' / 'ExSample_SalivaCpGs.csv'
+        self.gcs_storage = GCSStorage()
 
     def read_model_probes(self) -> pd.Series:
         """
@@ -66,14 +69,14 @@ class EpigenTLProcessor:
         
         return beta_table_filtered
 
-    def run_epigentl_with_csv(self, csv_file_path: str) -> pd.DataFrame:
+    def run_epigentl_with_csv(self, gcs_file_path: str) -> pd.DataFrame:
         '''
         使用 R 的 EpigenTL 包處理 CSV 文件，並返回 EpigenTL 結果的 DataFrame
         
-        :param csv_file_path: 包含甲基化數據的 CSV 文件的路徑
+        :param gcs_file_path: 包含甲基化數據的 CSV 文件的路徑
         :return: EpigenTL 處理後的結果 DataFrame
         '''
-        self.logger.info(f"Processing CSV file with EpigenTL: {csv_file_path}")
+        self.logger.info(f"Processing CSV file with EpigenTL: {gcs_file_path}")
 
         if not self.r_script_path:
             raise ValueError("EPIGENTL_R_SCRIPT_PATH environment variable is not set")
@@ -81,16 +84,16 @@ class EpigenTLProcessor:
         if not os.path.exists(self.r_script_path):
             raise FileNotFoundError(f"R script not found at {self.r_script_path}")
         
-        if not os.path.exists(csv_file_path):
-            raise FileNotFoundError(f"CSV file not found at {csv_file_path}")
+        # Download the file content from GCS as string
+        csv_content = self.gcs_storage.download_as_text_utf8(gcs_file_path)
         
         # Read and preprocess the beta table
-        beta_table = pd.read_csv(csv_file_path, index_col='probeID')
+        beta_table = pd.read_csv(io.StringIO(csv_content), index_col='probeID')
         preprocessed_beta_table = self.preprocess_beta_table(beta_table)
         
-        # Save preprocessed beta table to a temporary file
-        temp_csv_path = csv_file_path.replace('.csv', '_preprocessed.csv')
-        preprocessed_beta_table.to_csv(temp_csv_path)
+        # Save preprocessed beta table to a temporary file in memory
+        temp_preprocessed_file = '/tmp/temp_epigentl_preprocessed.csv'
+        preprocessed_beta_table.to_csv(temp_preprocessed_file)
 
         r_script_dir = os.path.dirname(self.r_script_path)
         epigentl_source_functions_path = os.path.join(r_script_dir, 'EpigenTL_SourceFunctions.R')
@@ -98,7 +101,7 @@ class EpigenTLProcessor:
 
         try:
             result = subprocess.run(
-                [self.r_executable, self.r_script_path, temp_csv_path, epigentl_source_functions_path],
+                [self.r_executable, self.r_script_path, temp_preprocessed_file, epigentl_source_functions_path],
                 capture_output=True,
                 text=True,
                 check=True
@@ -137,9 +140,9 @@ class EpigenTLProcessor:
             self.logger.error(f"Other error in processing CSV file with EpigenTL: {str(e)}")
             raise
         finally:
-            # Remove the temporary preprocessed CSV file
-            if os.path.exists(temp_csv_path):
-                os.remove(temp_csv_path)
+            # Remove the temporary file
+            if os.path.exists(temp_preprocessed_file):
+                os.remove(temp_preprocessed_file)
 
     def save_epigentl_results(self, epigentl_results: pd.DataFrame, batch_name: str) -> str:
         '''
@@ -149,42 +152,20 @@ class EpigenTLProcessor:
         :param batch_name: 樣本名稱，用於生成文件名
         :return: 保存的文件的相對路徑
         '''
-        epigentl_results_dir = self.backend_root / 'data' / 'epigentl_results'
-        epigentl_results_dir.mkdir(parents=True, exist_ok=True)
-        output_file = epigentl_results_dir / f"{batch_name}_epigentl_results.csv"
-        epigentl_results.to_csv(output_file, index=True)
-        self.logger.info(f"EpigenTL results saved to {output_file}")
-        relative_path = output_file.relative_to(self.backend_root).as_posix()
+        gcs_path = f"data/epigentl_results/{batch_name}_epigentl_results.csv"
+        # 將 DataFrame 轉換為 CSV 格式的字符串
+        csv_buffer = io.StringIO()
+        epigentl_results.to_csv(csv_buffer, index=True)
+        csv_string = csv_buffer.getvalue()
+
+        # 直接上傳字符串內容到 GCS
+        gcs_url = self.gcs_storage.upload_string(csv_string, gcs_path)
+        self.logger.info(f"EpigenTL results saved to GCS: {gcs_url}")
+
         
-        # # Update database
-        # db = SessionLocal()
-        # try:
-        #     # 獲取所有 sample_name
-        #     sample_names = epigentl_results.index.tolist()
-            
-        #     # 批量查詢 sample_id
-        #     samples = db.query(models.SampleData).filter(models.SampleData.sample_name.in_(sample_names)).all()
-            
-        #     # 創建 sample_name 到 sample 對象的映射
-        #     sample_map = {sample.sample_name: sample for sample in samples}
-            
-        #     # 更新每個樣本的 epigentl_results_path
-        #     for sample_name in sample_names:
-        #         sample = sample_map.get(sample_name)
-        #         if sample:
-        #             sample.epigentl_results_path = relative_path
-        #         else:
-        #             self.logger.warning(f"Sample with name {sample_name} not found in database")
-            
-        #     db.commit()
-        #     self.logger.info(f"Updated epigentl_results_path for {len(samples)} samples")
-        # except Exception as e:
-        #     db.rollback()
-        #     self.logger.error(f"Error updating database: {str(e)}")
-        # finally:
-        #     db.close()
+        # TODO: update database with the GCS path
         
-        return relative_path
+        return gcs_url
 
 
 if __name__ == "__main__":

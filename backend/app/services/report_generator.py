@@ -6,10 +6,11 @@ from scipy import stats
 from typing import Dict, Union, List
 from pathlib import Path
 import sys
-
 project_root = Path(__file__).resolve().parents[2]
 sys.path.append(str(project_root))
 import logging
+import io
+from app.services.gcs_storage import GCSStorage
 from app.services.idat_processor import IDATProcessor
 from app.services.r_epidish_processor import EpiDISHProcessor
 from app.services.sa2bl_processor import SA2BLProcessor
@@ -133,6 +134,18 @@ class ProcessedDataReportGenerator(ReportGenerator):
         self.processed_data_path = processed_data_path
         self.processed_data = pd.read_csv(self.processed_data_path, index_col='probeID')
 
+class ProcessedDataFromGCSReportGenerator(ReportGenerator):
+    def __init__(self):
+        super().__init__()
+        self.gcs_storage = GCSStorage()
+
+    def process_data(self, processed_data_gcs_path: str):
+        self.processed_data_path = processed_data_gcs_path
+        csv_content = self.gcs_storage.download_as_text_utf8(processed_data_gcs_path)
+        self.processed_data = pd.read_csv(io.StringIO(csv_content), index_col='probeID')
+        logging.info(f"Processed data loaded from GCS: {processed_data_gcs_path}")
+        logging.info(f"Processed data shape: {self.processed_data.shape}")
+
 if __name__ == "__main__":
     # 在主程序開始時調用
     setup_logging()
@@ -144,13 +157,14 @@ if __name__ == "__main__":
         'sex': [2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1]
     }
 
-    # Example usage for IDAT processing
-    idat_generator = IdatReportGenerator()
-    idat_file_loc = BACKEND_ROOT / 'data' / 'raw' / 'run1'
-    sample_sheet_path = idat_file_loc / 'Sample_Sheet.csv'
-    idat_generator.process_data(sample_sheet_path, idat_file_loc)
-    report_from_idat = idat_generator.generate_and_save_reports(metadata)
-    print("Report from IDAT generated and saved:")
+    # # Example usage for IDAT processing
+    # idat_generator = IdatReportGenerator()
+    # idat_file_loc = BACKEND_ROOT / 'data' / 'raw' / 'run1'
+    # sample_sheet_path = idat_file_loc / 'Sample_Sheet.csv'
+    # idat_generator.process_data(sample_sheet_path, idat_file_loc)
+    # report_from_idat = idat_generator.generate_and_save_reports(metadata)
+    # logging.info(f'beta_table from IDAT generated and saved: {idat_generator.processed_data_path}')
+    # logging.info(f'Report from IDAT saved to database: {report_from_idat}')
 
     # Example usage for processed data
     # processed_data_path = BACKEND_ROOT / 'data' / 'processed_beta_table' / 'our_all_samples_processed.csv'
@@ -158,3 +172,12 @@ if __name__ == "__main__":
     # processed_generator.process_data(str(processed_data_path))
     # saved_reports = processed_generator.generate_and_save_reports(metadata)
     # print("\nReports generated and saved:")
+
+    # Example usage for processed data from GCS
+    gcs_processed_data_path = "gs://lucy-data-storage/data/processed_beta_table/report_test01_processed.csv"
+    gcs_generator = ProcessedDataFromGCSReportGenerator()
+    gcs_generator.process_data(gcs_processed_data_path)
+    saved_reports = gcs_generator.generate_and_save_reports(metadata)
+    
+    logging.info(f"Processed data loaded from GCS: {gcs_generator.processed_data_path}")
+    logging.info(f"Reports generated and saved to database: {len(saved_reports)} reports")

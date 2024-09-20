@@ -2,6 +2,8 @@
 import pandas as pd
 import joblib
 import sys
+import io
+from app.services.gcs_storage import GCSStorage
 from pathlib import Path
 import logging
 from typing import Dict, Union
@@ -15,6 +17,7 @@ class SA2BLProcessor:
         self.resource_dir = self.backend_root / 'app' / 'resources'
         self.probes_file = self.resource_dir / 'model_probes' / 'DunedinPACE_probes.csv'
         self.lasso_model_file = self.resource_dir / 'adjust_models' / 'PACE20000_lasso_v1_EAA_7var.pkl'
+        self.gcs_storage = GCSStorage()
 
     def read_model_probes(self, file_path: Union[str, Path] = None) -> pd.Series:
         """
@@ -73,7 +76,7 @@ class SA2BLProcessor:
         adjusted_data = methylation_data - y_pred_samnbl
         return adjusted_data.dropna()
 
-    def sa2bl_from_csv(self, beta_table_file_name: str, epidish_file_name: str) -> pd.DataFrame:
+    def sa2bl_from_local_csv(self, beta_table_file_name: str, epidish_file_name: str) -> pd.DataFrame:
         """
         Process saliva-to-blood conversion from a CSV file.
         
@@ -90,6 +93,35 @@ class SA2BLProcessor:
         methylation_data_filtered = methylation_data[methylation_data.index.isin(model_probes)]
         
         epidish_data = pd.read_csv(self.epidish_data_dir / epidish_file_name, index_col='SampleID')
+        processed_epidish = self.process_epidish_data(epidish_data)
+        
+        corrections = self.apply_lasso_correction(processed_epidish, lasso_models)
+        adjusted_data = self.adjust_methylation_data(methylation_data_filtered, corrections)
+        
+        return adjusted_data
+    
+    def sa2bl_from_gcs_csv(self, beta_table_gcs_path: str, epidish_gcs_path: str) -> pd.DataFrame:
+        """
+        Process saliva-to-blood conversion from CSV files in GCS.
+        
+        :param beta_table_gcs_path: GCS path to the beta table CSV file
+        :param epidish_gcs_path: GCS path to the EpiDISH CSV file
+        :return: Adjusted methylation data
+        """
+        self.logger.info(f"Processing sa2bl from GCS. Beta table: {beta_table_gcs_path}, EpiDISH: {epidish_gcs_path}")
+
+        # Download and read beta table from GCS
+        beta_table_content = self.gcs_storage.download_as_text_utf8(beta_table_gcs_path)
+        methylation_data = pd.read_csv(io.StringIO(beta_table_content), index_col='probeID')
+
+        # Download and read EpiDISH data from GCS
+        epidish_content = self.gcs_storage.download_as_text_utf8(epidish_gcs_path)
+        epidish_data = pd.read_csv(io.StringIO(epidish_content), index_col='SampleID')
+
+        model_probes = self.read_model_probes()
+        lasso_models = self.load_lasso_models()
+        
+        methylation_data_filtered = methylation_data[methylation_data.index.isin(model_probes)]
         processed_epidish = self.process_epidish_data(epidish_data)
         
         corrections = self.apply_lasso_correction(processed_epidish, lasso_models)
@@ -122,7 +154,7 @@ if __name__ == "__main__":
     processor = SA2BLProcessor()
     
     # 示例用法 for sa2bl_from_csv
-    result_from_csv = processor.sa2bl_from_csv("our_all_samples_processed.csv", "our_all_samples_cell_proportions.csv")
+    result_from_csv = processor.sa2bl_from_local_csv("our_all_samples_processed.csv", "our_all_samples_cell_proportions.csv")
     print("Result from CSV:")
     print(result_from_csv.head())
     

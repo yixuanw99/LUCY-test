@@ -1,9 +1,12 @@
-# app/services/epidish_cell_proportion.py
+# app/services/r_epidish_cell_proportion.py
 import pandas as pd
 import logging
 import os
 import subprocess
 import json
+import io
+import tempfile
+from app.services.gcs_storage import GCSStorage
 from app.core.config import settings
 from pathlib import Path
 import sys
@@ -24,15 +27,16 @@ class EpiDISHProcessor:
         self.backend_root = Path(__file__).resolve().parents[2]
         self.r_script_path = settings.EPIDISH_R_SCRIPT_PATH
         self.r_executable = settings.R_EXECUTABLE
+        self.gcs_storage = GCSStorage()
 
-    def run_epidish_with_csv(self, csv_file_path: str) -> pd.DataFrame:
+    def run_epidish_with_csv(self, gcs_file_path: str) -> pd.DataFrame:
         '''
         使用 R 的 EpiDISH 包處理 CSV 文件，並返回細胞比例的 DataFrame
         
-        :param csv_file_path: 包含甲基化數據的 CSV 文件的路徑
+        :param gcs_file_path: 包含甲基化數據的 CSV 文件的路徑
         :return: EpiDISH 處理後的細胞比例 DataFrame
         '''
-        self.logger.info(f"Processing CSV file with EpiDISH: {csv_file_path}")
+        self.logger.info(f"Processing CSV file with EpiDISH: {gcs_file_path}")
 
         if not self.r_script_path:
             raise ValueError("EPIDISH_R_SCRIPT_PATH environment variable is not set")
@@ -40,12 +44,18 @@ class EpiDISHProcessor:
         if not os.path.exists(self.r_script_path):
             raise FileNotFoundError(f"R script not found at {self.r_script_path}")
         
-        if not os.path.exists(csv_file_path):
-            raise FileNotFoundError(f"CSV file not found at {csv_file_path}")
-                
+        # Download the file content from GCS as string
+        csv_content = self.gcs_storage.download_as_text_utf8(gcs_file_path)
+
+        # Create a temporary file in memory
+        # Create a temporary file
+        with tempfile.NamedTemporaryFile(mode='w+', suffix='.csv', delete=False) as temp_file:
+            temp_file.write(csv_content)
+            temp_file_path = temp_file.name
+
         try:
             result = subprocess.run(
-                [self.r_executable, self.r_script_path, csv_file_path],
+                [self.r_executable, self.r_script_path, temp_file_path],
                 capture_output=True,
                 text=True,
                 check=True
@@ -81,6 +91,10 @@ class EpiDISHProcessor:
         except Exception as e:
             self.logger.error(f"Other error in processing CSV file with EpiDISH: {str(e)}")
             raise
+        finally:
+            # Remove the temporary file
+            if os.path.exists(temp_file_path):
+                os.remove(temp_file_path)
 
     def save_cell_proportions(self, cell_proportions: pd.DataFrame, batch_name: str) -> str:
         '''
@@ -90,11 +104,16 @@ class EpiDISHProcessor:
         :param batch_name: 樣本名稱，用於生成文件名
         :return: 保存的文件的相對路徑
         '''
-        cell_proportions_dir = self.backend_root / 'data' / 'cell_proportions'
-        output_file = cell_proportions_dir / f"{batch_name}_cell_proportions.csv"
-        cell_proportions.to_csv(output_file, index=True)
-        self.logger.info(f"Cell proportions saved to {output_file}")
-        relative_path = output_file.relative_to(self.backend_root).as_posix()
+        gcs_path = f"data/cell_proportions/{batch_name}_cell_proportions.csv"
+
+        # 將 DataFrame 轉換為 CSV 格式的字符串
+        csv_buffer = io.StringIO()
+        cell_proportions.to_csv(csv_buffer, index=True)
+        csv_string = csv_buffer.getvalue()
+
+        # 直接上傳字符串內容到 GCS
+        gcs_url = self.gcs_storage.upload_string(csv_string, gcs_path)
+        self.logger.info(f"Cell proportions saved to GCS: {gcs_url}")
         
         # Update database
         db = SessionLocal()
@@ -112,7 +131,7 @@ class EpiDISHProcessor:
             for sample_name in sample_names:
                 sample = sample_map.get(sample_name)
                 if sample:
-                    sample.cell_proportion_path = relative_path
+                    sample.cell_proportion_path = gcs_url
                 else:
                     self.logger.warning(f"Sample with name {sample_name} not found in database")
             
@@ -124,14 +143,14 @@ class EpiDISHProcessor:
         finally:
             db.close()
         
-        return relative_path
+        return gcs_url
 
 
 if __name__ == "__main__":
     # import argparse
 
     # parser = argparse.ArgumentParser(description="Process CSV file with EpiDISH")
-    # parser.add_argument("csv_file_path", help="Path to the CSV file containing methylation data")
+    # parser.add_argument("gcs_file_path", help="Path to the CSV file containing methylation data")
     # parser.add_argument("--batch_name", help="Name of the batch for output file", required=True)
     # args = parser.parse_args()
 
