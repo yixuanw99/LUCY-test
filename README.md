@@ -1,6 +1,6 @@
 # LUCY-test Project
 
-This project consists of a Vue.js frontend and a FastAPI backend for epigenetic age report generation.
+This project consists of a Vue.js frontend and a FastAPI backend for epigenetic age report generation and analysis.
 
 ## Project Structure
 
@@ -9,26 +9,29 @@ LUCY-test/
 ├── backend/
 │   ├── app/
 │   │   ├── api/
+│   │   │   └── endpoints/
 │   │   ├── core/
 │   │   ├── db/
 │   │   ├── schemas/
 │   │   ├── services/
+│   │   │   └── r_support/
+│   │   ├── resources/
+│   │   │   ├── adjust_models/
+│   │   │   └── model_probes/
 │   │   └── main.py
 │   ├── data/
 │   │   ├── biolearn_output/
-│   │   ├── biomarker_resource/
-│   │   ├── cell_proportions/
 │   │   ├── processed_beta_table/
 │   │   └── raw/
 │   ├── logs/
-│   ├── scripts/
+│   ├── scripts_manual/
 │   ├── tests/
 │   ├── alembic/
 │   ├── Dockerfile
-│   ├── requirements.txt
-│   └── .env files
+│   └── requirements.txt
 ├── frontend/
 │   ├── public/
+│   │   └── mockdata/
 │   ├── src/
 │   │   ├── assets/
 │   │   ├── components/
@@ -37,63 +40,32 @@ LUCY-test/
 │   │   ├── App.vue
 │   │   └── main.js
 │   ├── tests/
+│   │   └── unit/
 │   └── package.json
+├── docs/
+│   ├── css/
+│   ├── img/
+│   ├── js/
+│   └── mockdata/
+├── workflows/
 └── docker-compose.yml
 ```
 
-## Setup and Running
-
-### Using Docker
-
-1. Make sure you have Docker and Docker Compose installed.
-2. Create appropriate `.env` files for your environment (development, production) in the backend directory.
-3. Run the following command in the root directory:
-
-   ```
-   docker-compose up --build
-   ```
-
-4. The frontend will be available at `http://localhost:8080` and the backend at `http://localhost:8000`.
-
-### Manual Setup
-
-#### Backend
-
-1. Navigate to the `backend` directory.
-2. Create a virtual environment and activate it:
-   ```
-   python -m venv venv
-   source venv/bin/activate  # On Windows use `venv\Scripts\Activate.ps1`
-   ```
-3. Install the requirements:
-   ```
-   pip install -r requirements.txt
-   ```
-4. Set up the appropriate `.env` file for your environment.
-5. Run the FastAPI server:
-   ```
-   uvicorn app.main:app --reload
-   ```
-
-#### Frontend
-
-1. Navigate to the `frontend` directory.
-2. Install the dependencies:
-   ```
-   npm install
-   ```
-3. Run the development server:
-   ```
-   npm run serve
-   ```
-
 ## Features
 
+### Backend
 - Epigenetic age report generation
-- IDAT file processing
+- IDAT file processing using ChAMP R package
 - Cell proportion analysis using EpiDISH
 - Saliva-to-blood conversion for methylation data
 - BioLearn model integration for age prediction
+- Google Cloud Storage integration for data storage
+- Database operations using SQLAlchemy and Alembic
+- R script integration for specialized bioinformatics processing
+
+### Frontend
+- Aging speed visualization
+- Disease risks assessment charts
 
 ## Database
 
