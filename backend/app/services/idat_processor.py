@@ -4,7 +4,7 @@ import logging
 import os
 import subprocess
 import json
-from dotenv import load_dotenv
+from app.core.config import settings
 from pathlib import Path
 import sys
 project_root = Path(__file__).resolve().parents[2]
@@ -17,10 +17,8 @@ class IDATProcessor:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.backend_root = Path(__file__).resolve().parents[2]
-        env_path = self.backend_root / '.env.development'
-        load_dotenv(dotenv_path=env_path)
-        self.r_script_path = os.getenv('CHAMP_R_SCRIPT_PATH')
-        self.r_executable = os.getenv('R_EXECUTABLE')
+        self.r_script_path = settings.CHAMP_R_SCRIPT_PATH
+        self.r_executable = settings.R_EXECUTABLE
 
     def process_idat(self, pd_file_path, idat_file_path) -> pd.DataFrame:
         '''

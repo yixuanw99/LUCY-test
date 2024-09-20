@@ -4,9 +4,9 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.db import models
 from app.schemas import report as report_schema
-from app.services import report_generator
-from app.api.deps import get_current_active_user
-from app.schemas.user import User
+# from app.services import report_generator
+# from app.api.deps import get_current_active_user
+# from app.schemas.user import User
 from typing import List
 
 router = APIRouter()
