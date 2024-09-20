@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     API_V1_STR: str
     PROJECT_NAME: str
     SECRET_KEY: str
-    DEBUG: bool
+    DEBUG: bool = False
 
     model_config = SettingsConfigDict(env_file=".env")
 
