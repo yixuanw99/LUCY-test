@@ -1,4 +1,4 @@
-# backend/scripts/import_samples.py
+# backend/scripts_manual/import_samples.py
 import csv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker

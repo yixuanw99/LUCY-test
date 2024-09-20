@@ -1,4 +1,4 @@
-# backend/app/scripts/generate_api_doc.py
+# backend/app/scripts_manual/generate_api_doc.py
 import json
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
