@@ -22,7 +22,7 @@ class EpigenTLProcessor:
         load_dotenv(dotenv_path=env_path)
         self.r_script_path = os.getenv('EPIGENTL_R_SCRIPT_PATH')
         self.r_executable = os.getenv('R_EXECUTABLE')
-        self.resource_dir = self.backend_root / 'data' / 'biomarker_resource'
+        self.resource_dir = self.backend_root / 'app' / 'resources'
         self.probes_file = self.resource_dir / 'model_probes' / 'EpigenTL_probes.csv'
         self.ex_sample_file = self.resource_dir / 'model_probes' / 'ExSample_SalivaCpGs.csv'
 
@@ -138,10 +138,10 @@ class EpigenTLProcessor:
         except Exception as e:
             self.logger.error(f"Other error in processing CSV file with EpigenTL: {str(e)}")
             raise
-        # finally:
-        #     # Remove the temporary preprocessed CSV file
-        #     if os.path.exists(temp_csv_path):
-        #         os.remove(temp_csv_path)
+        finally:
+            # Remove the temporary preprocessed CSV file
+            if os.path.exists(temp_csv_path):
+                os.remove(temp_csv_path)
 
     def save_epigentl_results(self, epigentl_results: pd.DataFrame, batch_name: str) -> str:
         '''
@@ -194,7 +194,7 @@ if __name__ == "__main__":
 
     try:
         # 示例用法
-        result = processor.run_epigentl_with_csv("data/processed_beta_table/our_all_samples_normed_processed.csv")
+        result = processor.run_epigentl_with_csv("data/processed_beta_table/our_all_samples_processed.csv")
         if isinstance(result, pd.DataFrame):
             print("Processing completed. Sample of EpigenTL results:")
             print(result.head())

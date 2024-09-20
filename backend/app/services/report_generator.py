@@ -14,6 +14,7 @@ from app.services.idat_processor import IDATProcessor
 from app.services.r_epidish_processor import EpiDISHProcessor
 from app.services.sa2bl_processor import SA2BLProcessor
 from app.services.biolearn_processor import BioLearnProcessor
+# from app.services.r_epigentl_processor import EpigentlProcessor
 from app.db.models import Report, SampleData
 from app.db.session import SessionLocal
 
@@ -68,10 +69,6 @@ class ReportGenerator:
             chro_age = metadata['age'][i]
             pace_value = self.biolearn_result_DunedinPACE['DunedinPACE_Predicted'].iloc[i]
             pace_pr = stats.norm.cdf(pace_value, loc=1, scale=0.2) * 100
-
-            # New calculations
-            delta_age = bio_age - chro_age
-            delta_pace = pace_value - 1
 
             report = {
                 sample_name: {
@@ -148,15 +145,16 @@ if __name__ == "__main__":
     }
 
     # Example usage for IDAT processing
-    # idat_generator = IdatReportGenerator()
-    # idat_generator.process_data("path/to/Sample_Sheet.csv", "path/to/idat_directory")
-    # report_from_idat = idat_generator.generate_report(metadata)
-    # print("Report from IDAT:")
-    # print(report_from_idat)
+    idat_generator = IdatReportGenerator()
+    idat_file_loc = BACKEND_ROOT / 'data' / 'raw' / 'run1'
+    sample_sheet_path = idat_file_loc / 'Sample_Sheet.csv'
+    idat_generator.process_data(sample_sheet_path, idat_file_loc)
+    report_from_idat = idat_generator.generate_and_save_reports(metadata)
+    print("Report from IDAT generated and saved:")
 
     # Example usage for processed data
-    processed_data_path = BACKEND_ROOT / 'data' / 'processed_beta_table' / 'our_all_samples_normed_processed.csv'
-    processed_generator = ProcessedDataReportGenerator()
-    processed_generator.process_data(str(processed_data_path))
-    saved_reports = processed_generator.generate_and_save_reports(metadata)
-    print("\nReports generated and saved:")
+    # processed_data_path = BACKEND_ROOT / 'data' / 'processed_beta_table' / 'our_all_samples_processed.csv'
+    # processed_generator = ProcessedDataReportGenerator()
+    # processed_generator.process_data(str(processed_data_path))
+    # saved_reports = processed_generator.generate_and_save_reports(metadata)
+    # print("\nReports generated and saved:")

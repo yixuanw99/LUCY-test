@@ -168,3 +168,6 @@ node_modules/
 
 # google cloud service account key
 service-account-key.json
+
+# adjusted model
+adjust_models/

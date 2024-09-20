@@ -73,7 +73,7 @@ if __name__ == "__main__":
     processor = BioLearnProcessor()
     
     # 示例用法
-    beta_table_path = processor.backend_root / 'data' / 'processed_beta_table' / 'our_all_samples_normed_processed.csv'
+    beta_table_path = processor.backend_root / 'data' / 'processed_beta_table' / 'our_all_samples_processed.csv'
     methylation_data = pd.read_csv(beta_table_path, index_col='probeID')
     metadata = {
         'age': [42, 42, 43, 43, 43, 28, 28, 28, 42, 42, 43, 43, 43, 28, 28, 28],

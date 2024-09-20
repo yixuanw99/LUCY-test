@@ -12,7 +12,7 @@ class SA2BLProcessor:
         self.backend_root = Path(__file__).resolve().parents[2]
         self.processed_beta_table_dir = self.backend_root / 'data' / 'processed_beta_table'
         self.epidish_data_dir = self.backend_root / 'data' / 'cell_proportions'
-        self.resource_dir = self.backend_root / 'data' / 'biomarker_resource'
+        self.resource_dir = self.backend_root / 'app' / 'resources'
         self.probes_file = self.resource_dir / 'model_probes' / 'DunedinPACE_probes.csv'
         self.lasso_model_file = self.resource_dir / 'adjust_models' / 'PACE20000_lasso_v1_EAA_7var.pkl'
 
@@ -122,7 +122,7 @@ if __name__ == "__main__":
     processor = SA2BLProcessor()
     
     # 示例用法 for sa2bl_from_csv
-    result_from_csv = processor.sa2bl_from_csv("our_all_samples_normed_processed.csv", "our_all_samples_cell_proportions.csv")
+    result_from_csv = processor.sa2bl_from_csv("our_all_samples_processed.csv", "our_all_samples_cell_proportions.csv")
     print("Result from CSV:")
     print(result_from_csv.head())
     
@@ -142,7 +142,7 @@ if __name__ == "__main__":
     # epidish_processor = EpiDISHProcessor()
     # 
     # methylation_data = idat_processor.champ_df_postprocess(idat_processor.process_idat("D:/SideProject/EpiAging/SVD_test/raw/Sample_Sheet.csv", "D:/SideProject/EpiAging/SVD_test/raw"))
-    # epidish_data = epidish_processor.run_epidish_with_csv("data/processed_beta_table/our_all_samples_normed_processed.csv")
+    # epidish_data = epidish_processor.run_epidish_with_csv("data/processed_beta_table/our_all_samples_processed.csv")
     # result_from_pd = processor.sa2bl_from_pd(methylation_data, epidish_data)
     # print("Result from full processing pipeline:")
     # print(result_from_pd.head())

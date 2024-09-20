@@ -141,8 +141,8 @@ if __name__ == "__main__":
 
     try:
         # 示例用法
-        # python app/services/r_epidish_processor.py "data/processed_beta_table/our_all_samples_normed_processed.csv" --batch_name our_all_samples
-        result = processor.run_epidish_with_csv("data/processed_beta_table/our_all_samples_normed_processed.csv")
+        # python app/services/r_epidish_processor.py "data/processed_beta_table/our_all_samples_processed.csv" --batch_name our_all_samples
+        result = processor.run_epidish_with_csv("data/processed_beta_table/our_all_samples_processed.csv")
         if isinstance(result, pd.DataFrame):
             print("Processing completed. Sample of cell proportions:")
             print(result.head())
