@@ -56,3 +56,12 @@ class GCSStorage:
             return content
         except Exception as e:
             raise Exception(f"Error downloading file from GCS: {str(e)}")
+        
+    def list_blobs(self, prefix: str):
+        """
+        List all blobs in the bucket with the given prefix.
+        
+        :param prefix: The prefix to filter blobs
+        :return: An iterable of blob objects
+        """
+        return self.bucket.list_blobs(prefix=prefix)

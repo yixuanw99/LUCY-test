@@ -4,12 +4,15 @@ import logging
 import os
 import subprocess
 import json
-from app.core.config import settings
+import tempfile
+import time
+import io
 from pathlib import Path
 import sys
+from google.cloud import storage
 project_root = Path(__file__).resolve().parents[2]
 sys.path.append(str(project_root))
-import io
+from app.core.config import settings
 from app.services.gcs_storage import GCSStorage
 from app.db.session import SessionLocal
 from app.db import models
@@ -80,6 +83,64 @@ class IDATProcessor:
             self.logger.error(f"Other error in processing IDAT file: {str(e)}")
             self.logger.error(f"Full output: {output_lines}")
             raise
+
+    def process_idat_from_gcs(self, pd_file_gcs_path: str, idat_folder_gcs_path: str) -> pd.DataFrame:
+        self.logger.info(f"Processing IDAT files from GCS: {idat_folder_gcs_path}")
+        self.logger.info(f"Using Sample Sheet from GCS: {pd_file_gcs_path}")
+
+        # 移除 "gs://bucket-name/" 前綴
+        bucket_name = idat_folder_gcs_path.split('/')[2]
+        prefix = '/'.join(idat_folder_gcs_path.split('/')[3:])
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            idat_dir = Path(temp_dir) / "idat_files"
+            idat_dir.mkdir(exist_ok=True)
+
+            # 下載 Sample Sheet
+            try:
+                pd_file_content = self.gcs_storage.download_as_text_utf8(pd_file_gcs_path)
+                pd_file_path = idat_dir / "Sample_Sheet.csv"
+                with open(pd_file_path, 'w') as f:
+                    f.write(pd_file_content)
+                self.logger.info(f"Sample Sheet downloaded to {pd_file_path}")
+            except Exception as e:
+                self.logger.error(f"Failed to download Sample Sheet: {str(e)}")
+                raise
+
+            # 列出並下載 IDAT 文件
+            storage_client = storage.Client()
+            bucket = storage_client.bucket(bucket_name)
+            blobs = bucket.list_blobs(prefix=prefix)
+
+            total_files = sum(1 for blob in blobs if blob.name.endswith('.idat'))
+            self.logger.info(f"Total IDAT files to download: {total_files}")
+
+            downloaded_files = 0
+            blobs = bucket.list_blobs(prefix=prefix)  # 重新獲取迭代器
+            for blob in blobs:
+                if blob.name.endswith('.idat'):
+                    file_name = os.path.basename(blob.name)
+                    file_path = idat_dir / file_name
+                    try:
+                        blob.download_to_filename(str(file_path))
+                        downloaded_files += 1
+                        self.logger.info(f"Downloaded {file_name} ({downloaded_files}/{total_files})")
+                    except Exception as e:
+                        self.logger.error(f"Failed to download {file_name}: {str(e)}")
+                        raise
+
+            if downloaded_files != total_files:
+                error_msg = f"Expected to download {total_files} IDAT files, but only downloaded {downloaded_files}"
+                self.logger.error(error_msg)
+                raise RuntimeError(error_msg)
+
+            self.logger.info(f"All IDAT files downloaded successfully. Total files: {total_files}")
+
+            # 添加一個小延遲，確保所有文件都已完全寫入
+            time.sleep(2)
+
+            # 使用現有的 process_idat 方法處理下載的文件
+            return self.process_idat(str(pd_file_path), str(idat_dir))
 
     def champ_df_postprocess(self, beta_table: pd.DataFrame) -> pd.DataFrame:
         '''

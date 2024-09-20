@@ -129,6 +129,17 @@ class IdatReportGenerator(ReportGenerator):
         self.processed_data = self.idat_processor.champ_df_postprocess(raw_data)
         self.processed_data_path = self.idat_processor.save_processed_data(self.processed_data, "report_test01")
 
+class IdatFromGCSReportGenerator(ReportGenerator):
+    def __init__(self):
+        super().__init__()
+        self.idat_processor = IDATProcessor()
+        self.gcs_storage = GCSStorage()
+
+    def process_data(self, pd_file_gcs_path: str, idat_folder_gcs_path: str):
+        raw_data = self.idat_processor.process_idat_from_gcs(pd_file_gcs_path, idat_folder_gcs_path)
+        self.processed_data = self.idat_processor.champ_df_postprocess(raw_data)
+        self.processed_data_path = self.idat_processor.save_processed_data(self.processed_data, "report_test01")
+
 class ProcessedDataReportGenerator(ReportGenerator):
     def process_data(self, processed_data_path: str):
         self.processed_data_path = processed_data_path
@@ -174,10 +185,20 @@ if __name__ == "__main__":
     # print("\nReports generated and saved:")
 
     # Example usage for processed data from GCS
-    gcs_processed_data_path = "gs://lucy-data-storage/data/processed_beta_table/report_test01_processed.csv"
-    gcs_generator = ProcessedDataFromGCSReportGenerator()
-    gcs_generator.process_data(gcs_processed_data_path)
-    saved_reports = gcs_generator.generate_and_save_reports(metadata)
+    # gcs_processed_data_path = "gs://lucy-data-storage/data/processed_beta_table/report_test01_processed.csv"
+    # gcs_generator = ProcessedDataFromGCSReportGenerator()
+    # gcs_generator.process_data(gcs_processed_data_path)
+    # saved_reports = gcs_generator.generate_and_save_reports(metadata)
     
-    logging.info(f"Processed data loaded from GCS: {gcs_generator.processed_data_path}")
-    logging.info(f"Reports generated and saved to database: {len(saved_reports)} reports")
+    # logging.info(f"Processed data loaded from GCS: {gcs_generator.processed_data_path}")
+    # logging.info(f"Reports generated and saved to database: {len(saved_reports)} reports")
+
+    # Example usage for IDAT processing from GCS
+    gcs_generator = IdatFromGCSReportGenerator()
+    pd_file_gcs_path = "gs://lucy-data-storage/data/raw/run1/Sample_Sheet.csv"
+    idat_folder_gcs_path = "gs://lucy-data-storage/data/raw/run1/"
+    gcs_generator.process_data(pd_file_gcs_path, idat_folder_gcs_path)
+    report_from_gcs = gcs_generator.generate_and_save_reports(metadata)
+    
+    logging.info(f'beta_table from GCS IDAT generated and saved: {gcs_generator.processed_data_path}')
+    logging.info(f'Report from GCS IDAT saved to database: {report_from_gcs}')
