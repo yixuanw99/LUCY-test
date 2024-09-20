@@ -40,6 +40,7 @@ def upload_directory_to_gcs(bucket_name, source_dir, destination_prefix):
             print(f"File {local_path} uploaded to {gcs_path}.")
 
 def main():
+    # example: python scripts_manual/upload_idat.py data/raw/run1 data/raw/run1/
     parser = argparse.ArgumentParser(description="Upload files or directories to Google Cloud Storage")
     parser.add_argument("source", help="Source file or directory to upload")
     parser.add_argument("destination", help="Destination path in GCS")

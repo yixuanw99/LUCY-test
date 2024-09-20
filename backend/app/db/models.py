@@ -1,6 +1,5 @@
 # backend/app/db/models.py
 from sqlalchemy import Column, Integer, String, Boolean, Float, Date, ForeignKey
-from sqlalchemy_utils.types.encrypted.encrypted_type import StringEncryptedType
 from sqlalchemy.orm import relationship
 from .base import Base
 
@@ -10,7 +9,7 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False)
     email = Column(String(255), unique=True, index=True, nullable=False)
-    hashed_password = Column(StringEncryptedType(String, length=255, key='abc'), nullable=False)
+    hashed_password = Column(String(255), nullable=False)
     birthday = Column(Date)
     phone_number = Column(String(10))
     is_active = Column(Boolean, default=True)
