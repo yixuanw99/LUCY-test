@@ -7,7 +7,7 @@ from alembic import context
 
 from app.db.base import Base
 from app.core.config import settings
-from app.db.models import User, Report, SampleData  # 確保導入所有模型
+from app.db.models import Report, SampleData  # 確保導入所有模型
 
 
 # this is the Alembic Config object, which provides
