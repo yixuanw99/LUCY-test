@@ -3,7 +3,6 @@ from pydantic import BaseModel
 from datetime import date
 
 class SampleDataBase(BaseModel):
-    user_id: int
     sample_name: str
     Sentrix_ID: str
     Sentrix_Position: str
@@ -11,7 +10,6 @@ class SampleDataBase(BaseModel):
 
 
 class SampleDataCreate(SampleDataBase):
-    user_id: int
     sample_name: str
     Sentrix_ID: str
     Sentrix_Position: str

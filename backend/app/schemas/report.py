@@ -4,13 +4,11 @@ from datetime import date
 from typing import Optional
 
 class ReportBase(BaseModel):
-    user_id: int
     sample_id: int
     collection_date: date
     chro_age: float
 
 class ReportCreate(ReportBase):
-    user_id: int
     sample_id: int
     collection_date: date
     report_date: date
@@ -27,7 +25,6 @@ class ReportUpdate(BaseModel):
 
 class Report(ReportBase):
     id: int
-    user_id: int
     sample_id: int
     collection_date: date
     report_date: date
