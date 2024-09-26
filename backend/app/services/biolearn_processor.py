@@ -46,19 +46,28 @@ class BioLearnProcessor:
         self.logger.info(f"Results saved to {output_path}")
         return output_path.relative_to(self.backend_root).as_posix()
 
-    def run_biolearn(self, methylation_data: pd.DataFrame, metadata: Dict[str, List], models: List[str], output_file: str):
+    def run_biolearn(self, methylation_data: pd.DataFrame, models: List[str], output_file: str, metadata: Dict[str, List] = None):
         """
         Run the complete biolearn analysis pipeline.
         
         :param methylation_data: DataFrame containing methylation data
-        :param metadata: Dictionary containing metadata (age, sex)
         :param models: List of model names to process
         :param output_file: Name of the output file
+        :param metadata: Optional dictionary containing metadata (age, sex)
         """
         self.logger.info("Starting biolearn analysis")
+        
+        if "GrimAgeV1" in models or "GrimAgeV2" in models:
+            if metadata is None or 'age' not in metadata or 'sex' not in metadata:
+                raise ValueError("Metadata with 'age' and 'sex' is required for GrimAge models")
+        
         geo_data = GeoData.from_methylation_matrix(methylation_data)
-        geo_data.metadata['age'] = metadata['age']
-        geo_data.metadata['sex'] = metadata['sex']
+        if metadata:
+            if 'age' in metadata:
+                geo_data.metadata['age'] = metadata['age']
+            if 'sex' in metadata:
+                geo_data.metadata['sex'] = metadata['sex']
+        
         results_df = self.process_biolearn_models(geo_data, models)
         relative_path = self.save_model_results(results_df, output_file)
         self.logger.info(f"Processed data saved. Relative path: {relative_path}")

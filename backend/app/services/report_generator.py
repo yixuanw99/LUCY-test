@@ -54,11 +54,13 @@ class ReportGenerator:
     def _perform_sa2bl(self):
         self.sa2bl_data = self.sa2bl_processor.sa2bl_from_pd(self.processed_data, self.epidish_data)
 
-    def _run_biolearn(self, metadata):
-        self.biolearn_result_Horvathv2 = self.biolearn_processor.run_biolearn(self.processed_data, metadata, ["Horvathv2"], "temp_biolearn_results.csv")
-        self.biolearn_result_DunedinPACE = self.biolearn_processor.run_biolearn(self.sa2bl_data, metadata, ["DunedinPACE"], "temp_biolearn_results.csv")
+    def _run_biolearn(self, metadata=None):
+        self.biolearn_result_Horvathv2 = self.biolearn_processor.run_biolearn(
+            self.processed_data, ["Horvathv2"], "temp_biolearn_results.csv", metadata=metadata)
+        self.biolearn_result_DunedinPACE = self.biolearn_processor.run_biolearn(
+            self.sa2bl_data, ["DunedinPACE"], "temp_biolearn_results.csv", metadata=metadata)
 
-    def generate_report(self, metadata) -> List[Dict[str, Dict[str, Union[str, float, date]]]]:
+    def generate_report(self, metadata=None) -> List[Dict[str, Dict[str, Union[str, float, date]]]]:
         self._run_epidish()
         self._perform_sa2bl()
         self._run_biolearn(metadata)
@@ -66,7 +68,7 @@ class ReportGenerator:
         reports = []
         for i, sample_name in enumerate(self.processed_data.columns):
             bio_age = self.biolearn_result_Horvathv2['Horvathv2_Predicted'].iloc[i]
-            chro_age = metadata['age'][i]
+            chro_age = metadata['age'][i] if metadata and 'age' in metadata else 0
             pace_value = self.biolearn_result_DunedinPACE['DunedinPACE_Predicted'].iloc[i]
             pace_pr = stats.norm.cdf(pace_value, loc=1, scale=0.2) * 100
 
@@ -98,8 +100,7 @@ class ReportGenerator:
                         continue
 
                     new_report = Report(
-                        sample_id=sample.id,
-                        user_id=sample.user_id,
+                        order_id=sample.id,
                         collection_date=data['collection_date'],
                         report_date=data['report_date'],
                         bio_age=data['bio_age'],
@@ -114,8 +115,8 @@ class ReportGenerator:
         finally:
             db.close()
 
-    def generate_and_save_reports(self, metadata) -> List[Report]:
-        reports = self.generate_report(metadata)
+    def generate_and_save_reports(self, metadata = None) -> List[Report]:
+        reports = self.generate_report(metadata = metadata)
         return self.save_reports(reports)
 
 class IdatReportGenerator(ReportGenerator):
