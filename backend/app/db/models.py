@@ -1,6 +1,5 @@
 # backend/app/db/models.py
 from sqlalchemy import Column, Integer, String, Boolean, Float, Date, ForeignKey
-from sqlalchemy_utils.types.encrypted.encrypted_type import StringEncryptedType
 from sqlalchemy.orm import relationship
 from .base import Base
 
