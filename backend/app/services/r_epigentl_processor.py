@@ -5,8 +5,6 @@ import os
 import subprocess
 import json
 import io
-from app.services.gcs_storage import GCSStorage
-from app.core.config import settings
 from pathlib import Path
 import sys
 
@@ -15,6 +13,8 @@ sys.path.append(str(project_root))
 
 from app.db import models
 from app.db.session import SessionLocal
+from app.services.gcs_storage import GCSStorage
+from app.core.config import settings
 
 class EpigenTLProcessor:
     def __init__(self):
@@ -68,8 +68,83 @@ class EpigenTLProcessor:
                 beta_table_filtered.loc[cpg] = mean_value
         
         return beta_table_filtered
+    
+    def run_epigentl_with_csv(self, csv_file_path: str) -> pd.DataFrame:
+        '''
+        使用 R 的 EpigenTL 包處理 CSV 文件，並返回 EpigenTL 結果的 DataFrame
+        
+        :param csv_file_path: 包含甲基化數據的 CSV 文件的路徑
+        :return: EpigenTL 處理後的結果 DataFrame
+        '''
+        self.logger.info(f"Processing CSV file with EpigenTL: {csv_file_path}")
 
-    def run_epigentl_with_csv(self, gcs_file_path: str) -> pd.DataFrame:
+        if not self.r_script_path:
+            raise ValueError("EPIGENTL_R_SCRIPT_PATH environment variable is not set")
+        
+        if not os.path.exists(self.r_script_path):
+            raise FileNotFoundError(f"R script not found at {self.r_script_path}")
+        
+        if not os.path.exists(csv_file_path):
+            raise FileNotFoundError(f"CSV file not found at {csv_file_path}")
+        
+        # Read and preprocess the beta table
+        beta_table = pd.read_csv(csv_file_path, index_col='probeID')
+        preprocessed_beta_table = self.preprocess_beta_table(beta_table)
+        
+        # Save preprocessed beta table to a temporary file
+        temp_csv_path = csv_file_path.replace('.csv', '_preprocessed.csv')
+        preprocessed_beta_table.to_csv(temp_csv_path)
+
+        r_script_dir = os.path.dirname(self.r_script_path)
+        epigentl_source_functions_path = os.path.join(r_script_dir, 'EpigenTL_SourceFunctions.R')
+
+
+        try:
+            result = subprocess.run(
+                [self.r_executable, self.r_script_path, temp_csv_path, epigentl_source_functions_path],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+
+            self.logger.info("R script output:")
+            self.logger.info(result.stdout)
+
+            output_lines = result.stdout.strip().split('\n')
+            json_output = output_lines[-1]
+
+            try:
+                output = json.loads(json_output)
+            except json.JSONDecodeError as json_error:
+                self.logger.error(f"Failed to parse R script output as JSON: {json_error}")
+                self.logger.error(f"R script output: {json_output}")
+                raise
+            
+            if output['status'] == 'success':
+                self.logger.info("EpigenTL processing completed successfully")
+                
+                epigentl_data = output['data']['epigentl_results']
+                
+                df = pd.DataFrame(epigentl_data)
+                df.set_index('SampleID', inplace=True)
+                
+                return df
+            
+            else:
+                self.logger.error(f"R script execution failed: {output.get('message', 'Unknown error')}")
+                raise RuntimeError(output.get('message', 'Unknown error'))
+        except subprocess.CalledProcessError as e:
+            self.logger.error(f"R script execution failed: {e.stderr}")
+            raise
+        except Exception as e:
+            self.logger.error(f"Other error in processing CSV file with EpigenTL: {str(e)}")
+            raise
+        finally:
+            # Remove the temporary preprocessed CSV file
+            if os.path.exists(temp_csv_path):
+                os.remove(temp_csv_path)
+
+    def run_epigentl_with_csv_fromGCS(self, gcs_file_path: str) -> pd.DataFrame:
         '''
         使用 R 的 EpigenTL 包處理 CSV 文件，並返回 EpigenTL 結果的 DataFrame
         
@@ -173,7 +248,8 @@ if __name__ == "__main__":
 
     try:
         # 示例用法
-        result = processor.run_epigentl_with_csv("data/processed_beta_table/our_all_samples_processed.csv")
+        # result = processor.run_epigentl_with_csv_fromGCS("data/processed_beta_table/report_test01_processed.csv")
+        result = processor.run_epigentl_with_csv("D:/Github/LUCY-test/backend/data/processed_beta_table/report_test01_processed.csv")
         if isinstance(result, pd.DataFrame):
             print("Processing completed. Sample of EpigenTL results:")
             print(result.head())
