@@ -14,7 +14,7 @@ from app.services.idat_processor import IDATProcessor
 from app.services.r_epidish_processor import EpiDISHProcessor
 from app.services.sa2bl_processor import SA2BLProcessor
 from app.services.biolearn_processor import BioLearnProcessor
-# from app.services.r_epigentl_processor import EpigentlProcessor
+from app.services.r_epigentl_processor import EpigenTLProcessor
 from app.db.models import Report, SampleData
 from app.db.session import SessionLocal
 
@@ -44,9 +44,11 @@ class ReportGenerator:
         self.sa2bl_data = None
         self.biolearn_result_Horvathv2 = None
         self.biolearn_result_DunedinPACE = None
+        self.epigentl_result = None
         self.epidish_processor = EpiDISHProcessor()
         self.sa2bl_processor = SA2BLProcessor()
         self.biolearn_processor = BioLearnProcessor()
+        self.epigentl_processor = EpigenTLProcessor()
 
     def _run_epidish(self):
         self.epidish_data = self.epidish_processor.run_epidish_with_csv(self.processed_data_path)
@@ -59,11 +61,15 @@ class ReportGenerator:
             self.processed_data, ["Horvathv2"], "temp_biolearn_results.csv", metadata=metadata)
         self.biolearn_result_DunedinPACE = self.biolearn_processor.run_biolearn(
             self.sa2bl_data, ["DunedinPACE"], "temp_biolearn_results.csv", metadata=metadata)
+        
+    def _run_epigentl(self):
+        self.epigentl_result = self.epigentl_processor.run_epigentl_with_csv(self.processed_data_path)
 
     def generate_report(self, metadata=None) -> List[Dict[str, Dict[str, Union[str, float, date]]]]:
         self._run_epidish()
         self._perform_sa2bl()
         self._run_biolearn(metadata)
+        self._run_epigentl()
 
         reports = []
         for i, sample_name in enumerate(self.processed_data.columns):
@@ -71,6 +77,14 @@ class ReportGenerator:
             chro_age = metadata['age'][i] if metadata and 'age' in metadata else 0
             pace_value = self.biolearn_result_DunedinPACE['DunedinPACE_Predicted'].iloc[i]
             pace_pr = stats.norm.cdf(pace_value, loc=1, scale=0.2) * 100
+            vo2max = self.epigentl_result['DNAmVO2max_C_Pred'].iloc[i]
+            grip = self.epigentl_result['DNAmGrip_noAge_C_Pred'].iloc[i]
+            gait = self.epigentl_result['DNAmGait_noAge_C_Pred'].iloc[i]
+            cystatin = self.epigentl_result['DNAmCystatinC_C_Pred'].iloc[i]
+            adm = self.epigentl_result['DNAmADM_C_Pred'].iloc[i]
+            timp = self.epigentl_result['DNAmTIMP1_C_Pred'].iloc[i]
+            pai1 = self.epigentl_result['DNAmPAI1_C_Pred'].iloc[i]
+            packyrs = self.epigentl_result['DNAmPACKYRS_C_Pred'].iloc[i]
 
             report = {
                 sample_name: {
@@ -80,7 +94,15 @@ class ReportGenerator:
                     "bio_age": bio_age,
                     "chro_age": chro_age,
                     "pace_value": pace_value,
-                    "pace_pr": pace_pr
+                    "pace_pr": pace_pr,
+                    "vo2max": vo2max,
+                    "grip": grip,
+                    "gait": gait,
+                    "cystatin": cystatin,
+                    "adm": adm,
+                    "timp": timp,
+                    "pai1": pai1,
+                    "packyrs": packyrs
                 }
             }
             reports.append(report)
@@ -106,7 +128,15 @@ class ReportGenerator:
                         bio_age=data['bio_age'],
                         chro_age=data['chro_age'],
                         pace_value=data['pace_value'],
-                        pace_pr=data['pace_pr']
+                        pace_pr=data['pace_pr'],
+                        vo2max=data['vo2max'],
+                        grip=data['grip'],
+                        gait=data['gait'],
+                        cystatin=data['cystatin'],
+                        adm=data['adm'],
+                        timp=data['timp'],
+                        pai1=data['pai1'],
+                        packyrs=data['packyrs']
                     )
                     db.add(new_report)
                     saved_reports.append(new_report)
@@ -124,10 +154,10 @@ class IdatReportGenerator(ReportGenerator):
         super().__init__()
         self.idat_processor = IDATProcessor()
 
-    def process_data(self, pd_file_path: str, idat_file_path: str):
+    def process_data(self, pd_file_path: str, idat_file_path: str, batch_name: str = "report_test01"):
         raw_data = self.idat_processor.process_idat(pd_file_path, idat_file_path)
         self.processed_data = self.idat_processor.champ_df_postprocess(raw_data)
-        self.processed_data_path = self.idat_processor.save_processed_data(self.processed_data, "report_test01")
+        self.processed_data_path = self.idat_processor.save_processed_data(self.processed_data, batch_name=batch_name)
 
 class ProcessedDataReportGenerator(ReportGenerator):
     def process_data(self, processed_data_path: str):

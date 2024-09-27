@@ -49,6 +49,8 @@ def download_file_from_gcs(bucket_name, source_blob_name):
     return temp_file_path
 
 def upload_sample_data(pd_file_local_path):
+    # 獲取目錄路徑
+    directory_path = os.path.dirname(pd_file_local_path).replace(os.sep, '/')
     """從本地的CSV檔案導入樣本數據"""
     session = SessionLocal()
     try:
@@ -59,7 +61,7 @@ def upload_sample_data(pd_file_local_path):
             
             sentrix_id = str(row['Sentrix_ID'])
             sentrix_position = str(row['Sentrix_Position'])
-            idat_file = f"data/raw/run1/{sentrix_id}_{sentrix_position}_Grn.idat,data/raw/run1/{sentrix_id}_{sentrix_position}_Red.idat"
+            idat_file = f"{directory_path}/{sentrix_id}_{sentrix_position}_Grn.idat,{directory_path}/{sentrix_id}_{sentrix_position}_Red.idat"
 
             existing_sample = session.query(SampleData).filter_by(
                 Sentrix_ID=sentrix_id,
@@ -127,7 +129,7 @@ def upload_sample_data_from_gcs(pd_file_gcs_path):
     finally:
         session.close()
 
-def generate_reports(pd_file_local_path, idat_folder_local_path):
+def generate_reports(pd_file_local_path, idat_folder_local_path, batch_name):
     """生成報告"""
     db = SessionLocal()
     try:
@@ -137,14 +139,14 @@ def generate_reports(pd_file_local_path, idat_folder_local_path):
         #     'age': [sample.user.birthday.year for sample in samples],
         #     'sex': [2 if sample.user.sex == 'F' else 1 for sample in samples]
         # }
-        metadata = {
-            'age': [42, 42, 43, 43, 43, 28, 28, 28, 42, 42, 43, 43, 43, 28, 28, 28],
-            'sex': [2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1]
-        }
+        # metadata = {
+        #     'age': [42, 42, 43, 43, 43, 28, 28, 28, 42, 42, 43, 43, 43, 28, 28, 28],
+        #     'sex': [2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1]
+        # }
         
         local_generator = IdatReportGenerator()
-        local_generator.process_data(pd_file_local_path, idat_folder_local_path)
-        report_from_local = local_generator.generate_and_save_reports(metadata)
+        local_generator.process_data(pd_file_local_path, idat_folder_local_path, batch_name)
+        report_from_local = local_generator.generate_and_save_reports()
         logger.info(f"Generated and saved {len(report_from_local)} reports.")
     finally:
         db.close()
@@ -171,20 +173,21 @@ def generate_reports_from_gcs(pd_file_gcs_path, idat_folder_gcs_path):
     finally:
         db.close()
 
-def main(pd_file_path, idat_folder_path):
+def main(pd_file_path, idat_folder_path, batch_name):
     """主函數，執行整個流程"""
     logger.info("Starting sample processing and report generation...")
     
     upload_sample_data(pd_file_path)
-    generate_reports(pd_file_path, idat_folder_path)
+    generate_reports(pd_file_path, idat_folder_path, batch_name)
     
     logger.info("Sample processing and report generation completed.")
 
 if __name__ == "__main__":
     # PD_FILE_GCS_PATH = "gs://lucy-data-storage/data/raw/run1/Sample_Sheet.csv"
     # IDAT_FOLDER_GCS_PATH = "gs://lucy-data-storage/data/raw/run1/"
-    PD_FILE_PATH = project_root / "data" / "raw" / "run1" / "Sample_Sheet.csv"
-    IDAT_FOLDER_PATH = project_root / "data" / "raw" / "run1"
+    PD_FILE_PATH = project_root / "data" / "raw" / "GSE72556" / "Sample_Sheet.csv"
+    IDAT_FOLDER_PATH = project_root / "data" / "raw" / "GSE72556"
+    batch_name = "GSE72556"
 
     
-    main(PD_FILE_PATH, IDAT_FOLDER_PATH)
+    main(PD_FILE_PATH, IDAT_FOLDER_PATH, batch_name)

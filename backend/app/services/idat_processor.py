@@ -50,6 +50,18 @@ class IDATProcessor:
                 text=True,
                 check=True
             )
+            self.logger.info("R script execution completed")
+
+            R_stderr = result.stderr.strip()
+            #R script輸出測試-----------------------------------------------------
+            # 保存输出到文件
+            output_file_path = Path("c:/Users/yxwu/Documents/Rscript_output_temp.txt")
+            output_file_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(output_file_path, "w") as f:
+                f.write(R_stderr)
+                # f.write("\n".join(R_stderr))
+            self.logger.info(f"R script output saved to {output_file_path}")
+            #R script輸出測試-----------------------------------------------------
 
             output_lines = result.stdout.strip().split('\n')
             json_output = output_lines[-1]

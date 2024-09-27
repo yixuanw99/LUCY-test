@@ -4,7 +4,6 @@ import logging
 import os
 import subprocess
 import json
-from app.core.config import settings
 from pathlib import Path
 import sys
 
@@ -13,6 +12,8 @@ sys.path.append(str(project_root))
 
 from app.db import models
 from app.db.session import SessionLocal
+from app.core.config import settings
+
 
 class EpigenTLProcessor:
     def __init__(self):
@@ -192,7 +193,7 @@ if __name__ == "__main__":
 
     try:
         # 示例用法
-        result = processor.run_epigentl_with_csv("data/processed_beta_table/our_all_samples_processed.csv")
+        result = processor.run_epigentl_with_csv("data/processed_beta_table/report_test01_processed.csv")
         if isinstance(result, pd.DataFrame):
             print("Processing completed. Sample of EpigenTL results:")
             print(result.head())

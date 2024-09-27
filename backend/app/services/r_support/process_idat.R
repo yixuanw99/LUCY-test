@@ -20,8 +20,12 @@ process_idat <- function(pd_file_path, idat_file_path) {
 
     pd_file <- read.table(pd_file_path, header = TRUE, sep = ",")
     myDir <- idat_file_path
-    myLoad <- champ.load(directory=myDir,arraytype="EPICv2")
-    myNorm <- champ.norm(beta = myLoad$beta, arraytype = "EPICv2", cores = 3)
+    # myLoad <- champ.load(directory=myDir,arraytype="EPICv2")
+    # myNorm <- champ.norm(beta = myLoad$beta, arraytype = "EPICv2", cores = 3)
+    myLoad <- champ.load(directory=myDir,arraytype="450K")
+    myNorm <- champ.norm(beta = myLoad$beta, arraytype = "450K", cores = 3)
+    # myLoad <- champ.load(directory=myDir,arraytype="EPICv1")
+    # myNorm <- champ.norm(beta = myLoad$beta, arraytype = "EPICv1", cores = 3)
     
     # 將行名轉換為一個名為 'probeID' 的列
     myNorm_df <- as.data.frame(myNorm)
