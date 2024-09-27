@@ -22,10 +22,10 @@ process_idat <- function(pd_file_path, idat_file_path) {
     myDir <- idat_file_path
     # myLoad <- champ.load(directory=myDir,arraytype="EPICv2")
     # myNorm <- champ.norm(beta = myLoad$beta, arraytype = "EPICv2", cores = 3)
-    myLoad <- champ.load(directory=myDir,arraytype="450K")
-    myNorm <- champ.norm(beta = myLoad$beta, arraytype = "450K", cores = 3)
-    # myLoad <- champ.load(directory=myDir,arraytype="EPICv1")
-    # myNorm <- champ.norm(beta = myLoad$beta, arraytype = "EPICv1", cores = 3)
+    # myLoad <- champ.load(directory=myDir,arraytype="450K")
+    # myNorm <- champ.norm(beta = myLoad$beta, arraytype = "450K", cores = 3)
+    myLoad <- champ.load(directory=myDir,arraytype="EPICv1")
+    myNorm <- champ.norm(beta = myLoad$beta, arraytype = "EPICv1", cores = 3)
     
     # 將行名轉換為一個名為 'probeID' 的列
     myNorm_df <- as.data.frame(myNorm)
@@ -37,6 +37,9 @@ process_idat <- function(pd_file_path, idat_file_path) {
 
     # 按照 probeID 排序
     myNorm_df <- myNorm_df[order(myNorm_df$probeID), ]
+
+    # 將myNorm_df存儲為CSV文件
+    # write.csv(myNorm_df, "D:/Github/LUCY-test/backend/data/processed_beta_table/GSE111631_2_processed.csv", row.names = FALSE)
     
     # 創建一個包含數據、行名和列名的列表
     result_list <- list(

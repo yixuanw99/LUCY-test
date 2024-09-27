@@ -13,7 +13,7 @@ sys.path.append(str(project_root))
 
 from app.db.session import SessionLocal
 from app.db import models
-from app.services.report_generator import IdatReportGenerator
+from app.services.report_generator import IdatReportGenerator, ProcessedDataReportGenerator
 from app.db.models import SampleData
 from app.core.config import settings
 from app.services.gcs_storage import GCSStorage
@@ -151,6 +151,28 @@ def generate_reports(pd_file_local_path, idat_folder_local_path, batch_name):
     finally:
         db.close()
 
+def generate_reports_from_local_betas(local_betas_path):
+    """生成報告"""
+    db = SessionLocal()
+    try:
+        # TODO: 從數據庫中獲取樣本的年齡和性別信息
+        # samples = db.query(models.SampleData).all()
+        # metadata = {
+        #     'age': [sample.user.birthday.year for sample in samples],
+        #     'sex': [2 if sample.user.sex == 'F' else 1 for sample in samples]
+        # }
+        # metadata = {
+        #     'age': [42, 42, 43, 43, 43, 28, 28, 28, 42, 42, 43, 43, 43, 28, 28, 28],
+        #     'sex': [2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1]
+        # }
+        
+        local_betas_report_generator = ProcessedDataReportGenerator()
+        local_betas_report_generator.process_data(local_betas_path)
+        report_from_local = local_betas_report_generator.generate_and_save_reports()
+        logger.info(f"Generated and saved {len(report_from_local)} reports.")
+    finally:
+        db.close()
+
 def generate_reports_from_gcs(pd_file_gcs_path, idat_folder_gcs_path):
     """生成報告"""
     db = SessionLocal()
@@ -178,16 +200,18 @@ def main(pd_file_path, idat_folder_path, batch_name):
     logger.info("Starting sample processing and report generation...")
     
     upload_sample_data(pd_file_path)
-    generate_reports(pd_file_path, idat_folder_path, batch_name)
+    # generate_reports(pd_file_path, idat_folder_path, batch_name)
+    local_betas_path = project_root / 'data' / 'processed_beta_table' / 'GSE111631_2_processed.csv'
+    generate_reports_from_local_betas(local_betas_path)
     
     logger.info("Sample processing and report generation completed.")
 
 if __name__ == "__main__":
     # PD_FILE_GCS_PATH = "gs://lucy-data-storage/data/raw/run1/Sample_Sheet.csv"
     # IDAT_FOLDER_GCS_PATH = "gs://lucy-data-storage/data/raw/run1/"
-    PD_FILE_PATH = project_root / "data" / "raw" / "GSE72556" / "Sample_Sheet.csv"
-    IDAT_FOLDER_PATH = project_root / "data" / "raw" / "GSE72556"
-    batch_name = "GSE72556"
+    PD_FILE_PATH = project_root / "data" / "raw" / "GSE111631_2" / "Sample_Sheet.csv"
+    IDAT_FOLDER_PATH = project_root / "data" / "raw" / "GSE111631_2"
+    batch_name = "GSE111631_2"
 
     
     main(PD_FILE_PATH, IDAT_FOLDER_PATH, batch_name)

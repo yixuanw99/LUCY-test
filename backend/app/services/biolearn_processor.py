@@ -11,6 +11,7 @@ class BioLearnProcessor:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.backend_root = Path(__file__).resolve().parents[2]
+        self.processed_beta_table_dir = self.backend_root / 'data' / 'processed_beta_table'
         self.output_dir = self.backend_root / 'data' / 'biolearn_output'
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.gallery = ModelGallery()
@@ -46,11 +47,13 @@ class BioLearnProcessor:
         self.logger.info(f"Results saved to {output_path}")
         return output_path.relative_to(self.backend_root).as_posix()
 
-    def run_biolearn(self, methylation_data: pd.DataFrame, models: List[str], output_file: str, metadata: Dict[str, List] = None):
+    def run_biolearn(self, methylation_data: Union[str, Path, pd.DataFrame], 
+                     models: List[str], output_file: str, 
+                     metadata: Dict[str, List] = None):
         """
         Run the complete biolearn analysis pipeline.
         
-        :param methylation_data: DataFrame containing methylation data
+        :param methylation_data: Either a path to the CSV file or a DataFrame containing methylation data
         :param models: List of model names to process
         :param output_file: Name of the output file
         :param metadata: Optional dictionary containing metadata (age, sex)
@@ -60,6 +63,15 @@ class BioLearnProcessor:
         if "GrimAgeV1" in models or "GrimAgeV2" in models:
             if metadata is None or 'age' not in metadata or 'sex' not in metadata:
                 raise ValueError("Metadata with 'age' and 'sex' is required for GrimAge models")
+        
+        # 處理 methylation_data 輸入
+        if isinstance(methylation_data, (str, Path)):
+            self.logger.info(f"Reading methylation data from file: {methylation_data}")
+            methylation_data_path = self.processed_beta_table_dir / methylation_data
+            self.logger.info(f"methylation_data_path: {methylation_data_path}")
+            methylation_data = pd.read_csv(methylation_data_path, index_col='probeID')
+        elif not isinstance(methylation_data, pd.DataFrame):
+            raise ValueError("methylation_data must be either a file path or a pandas DataFrame")
         
         geo_data = GeoData.from_methylation_matrix(methylation_data)
         if metadata:

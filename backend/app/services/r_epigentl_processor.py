@@ -5,6 +5,7 @@ import os
 import subprocess
 import json
 from pathlib import Path
+from typing import Union
 import sys
 
 project_root = Path(__file__).resolve().parents[2]
@@ -67,22 +68,23 @@ class EpigenTLProcessor:
         
         return beta_table_filtered
 
-    def run_epigentl_with_csv(self, csv_file_path: str) -> pd.DataFrame:
+    def run_epigentl_with_csv(self, csv_file_path: Union[str, Path]) -> pd.DataFrame:
         '''
         使用 R 的 EpigenTL 包處理 CSV 文件，並返回 EpigenTL 結果的 DataFrame
         
-        :param csv_file_path: 包含甲基化數據的 CSV 文件的路徑
+        :param csv_file_path: 包含甲基化數據的 CSV 文件的路徑 (可以是 str 或 Path 對象)
         :return: EpigenTL 處理後的結果 DataFrame
         '''
+        csv_file_path = Path(csv_file_path)  # Convert to Path object if it's a string
         self.logger.info(f"Processing CSV file with EpigenTL: {csv_file_path}")
 
         if not self.r_script_path:
             raise ValueError("EPIGENTL_R_SCRIPT_PATH environment variable is not set")
         
-        if not os.path.exists(self.r_script_path):
+        if not Path(self.r_script_path).exists():
             raise FileNotFoundError(f"R script not found at {self.r_script_path}")
         
-        if not os.path.exists(csv_file_path):
+        if not csv_file_path.exists():
             raise FileNotFoundError(f"CSV file not found at {csv_file_path}")
         
         # Read and preprocess the beta table
@@ -90,16 +92,16 @@ class EpigenTLProcessor:
         preprocessed_beta_table = self.preprocess_beta_table(beta_table)
         
         # Save preprocessed beta table to a temporary file
-        temp_csv_path = csv_file_path.replace('.csv', '_preprocessed.csv')
+        self.logger.info(f"csv_file_path: {csv_file_path}")
+        temp_csv_path = csv_file_path.with_stem(csv_file_path.stem + '_preprocessed')
         preprocessed_beta_table.to_csv(temp_csv_path)
 
-        r_script_dir = os.path.dirname(self.r_script_path)
-        epigentl_source_functions_path = os.path.join(r_script_dir, 'EpigenTL_SourceFunctions.R')
-
+        r_script_dir = Path(self.r_script_path).parent
+        epigentl_source_functions_path = r_script_dir / 'EpigenTL_SourceFunctions.R'
 
         try:
             result = subprocess.run(
-                [self.r_executable, self.r_script_path, temp_csv_path, epigentl_source_functions_path],
+                [self.r_executable, str(self.r_script_path), str(temp_csv_path), str(epigentl_source_functions_path)],
                 capture_output=True,
                 text=True,
                 check=True
@@ -139,8 +141,8 @@ class EpigenTLProcessor:
             raise
         finally:
             # Remove the temporary preprocessed CSV file
-            if os.path.exists(temp_csv_path):
-                os.remove(temp_csv_path)
+            if temp_csv_path.exists():
+                temp_csv_path.unlink()
 
     def save_epigentl_results(self, epigentl_results: pd.DataFrame, batch_name: str) -> str:
         '''

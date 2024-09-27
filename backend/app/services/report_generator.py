@@ -164,6 +164,15 @@ class ProcessedDataReportGenerator(ReportGenerator):
         self.processed_data_path = processed_data_path
         self.processed_data = pd.read_csv(self.processed_data_path, index_col='probeID')
 
+    def _perform_sa2bl(self):
+        self.sa2bl_data = self.sa2bl_processor.sa2bl(self.processed_data_path, self.epidish_data)
+
+    def _run_biolearn(self, metadata=None):
+        self.biolearn_result_Horvathv2 = self.biolearn_processor.run_biolearn(
+            self.processed_data_path, ["Horvathv2"], "temp_biolearn_results.csv", metadata=metadata)
+        self.biolearn_result_DunedinPACE = self.biolearn_processor.run_biolearn(
+            self.sa2bl_data, ["DunedinPACE"], "temp_biolearn_results.csv", metadata=metadata)
+
 if __name__ == "__main__":
     # 在主程序開始時調用
     setup_logging()
