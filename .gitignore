@@ -171,3 +171,6 @@ service-account-key.json
 
 # adjusted model
 adjust_models/
+
+# data
+data/
