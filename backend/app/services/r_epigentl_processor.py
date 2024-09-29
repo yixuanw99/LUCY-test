@@ -107,8 +107,8 @@ class EpigenTLProcessor:
                 check=True
             )
 
-            self.logger.info("R script output:")
-            self.logger.info(result.stdout)
+            # self.logger.info("R script output:")
+            # self.logger.info(result.stdout)
 
             output_lines = result.stdout.strip().split('\n')
             json_output = output_lines[-1]

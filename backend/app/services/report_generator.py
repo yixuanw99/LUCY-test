@@ -1,15 +1,16 @@
 # app/services/report_generator.py
 import pandas as pd
 import numpy as np
-from datetime import date
+from datetime import datetime, timezone
 from scipy import stats
 from typing import Dict, Union, List
+import random
+import logging
 from pathlib import Path
 import sys
 
 project_root = Path(__file__).resolve().parents[2]
 sys.path.append(str(project_root))
-import logging
 from app.services.idat_processor import IDATProcessor
 from app.services.r_epidish_processor import EpiDISHProcessor
 from app.services.sa2bl_processor import SA2BLProcessor
@@ -38,6 +39,7 @@ def setup_logging():
 
 class ReportGenerator:
     def __init__(self):
+        self.logger = logging.getLogger(__name__)
         self.processed_data = None
         self.processed_data_path = None
         self.epidish_data = None
@@ -45,6 +47,7 @@ class ReportGenerator:
         self.biolearn_result_Horvathv2 = None
         self.biolearn_result_DunedinPACE = None
         self.epigentl_result = None
+        self.population_data = None
         self.epidish_processor = EpiDISHProcessor()
         self.sa2bl_processor = SA2BLProcessor()
         self.biolearn_processor = BioLearnProcessor()
@@ -65,39 +68,78 @@ class ReportGenerator:
     def _run_epigentl(self):
         self.epigentl_result = self.epigentl_processor.run_epigentl_with_csv(self.processed_data_path)
 
-    def generate_report(self, metadata=None) -> List[Dict[str, Dict[str, Union[str, float, date]]]]:
+    def load_population_data(self, csv_path=None):
+        try:
+            if csv_path:
+                # 从 CSV 文件加载数据
+                self.population_data = pd.read_csv(csv_path)
+            else:
+                # 使用硬编码的数据
+                self.population_data = pd.DataFrame({
+                    'fitage': [37.5, 36.5, 37.5, 36.5, 37.5, 38.5, 38.5, 39.5, 39.5, 38.5],
+                    'vo2max': [36.9231, 36.0202, 37.6281, 36.8403, 37.6349, 38.75, 38.1789, 39.0707, 39.2625, 38.855],
+                    'grip': [35.576, 32.801, 34.6779, 32.7211, 34.6943, 34.5112, 33.4174, 33.7759, 38.9722, 38.8235],
+                    'gait': [1.9685, 1.8552, 1.8629, 1.8414, 1.7789, 1.9938, 2.0224, 1.974, 1.8812, 1.8868],
+                    'mentalhealth': [0.5, 0.6, 0.7, 0.8, 0.9, 0.5, 0.6, 0.7, 0.8, 0.9]
+                })
+            self.logger.info("Population data loaded successfully.")
+        except Exception as e:
+            self.logger.error(f"Error loading population data: {str(e)}")
+            self.population_data = None
+                    
+    def generate_report(self, metadata=None) -> List[Dict[str, Dict[str, Union[str, float, datetime]]]]:
         self._run_epidish()
         self._perform_sa2bl()
         self._run_biolearn(metadata)
         self._run_epigentl()
 
+        # 确保已加载母体数据
+        self.load_population_data()
+
         reports = []
         for i, sample_name in enumerate(self.processed_data.columns):
             bio_age = self.biolearn_result_Horvathv2['Horvathv2_Predicted'].iloc[i]
-            chro_age = metadata['age'][i] if metadata and 'age' in metadata else 0
             pace_value = self.biolearn_result_DunedinPACE['DunedinPACE_Predicted'].iloc[i]
-            pace_pr = stats.norm.cdf(pace_value, loc=1, scale=0.2) * 100
+            fitage = self.epigentl_result['DNAmFitAge_C_Pred'].iloc[i]
             vo2max = self.epigentl_result['DNAmVO2max_C_Pred'].iloc[i]
             grip = self.epigentl_result['DNAmGrip_noAge_C_Pred'].iloc[i]
             gait = self.epigentl_result['DNAmGait_noAge_C_Pred'].iloc[i]
+            mentalhealth = random.uniform(0, 1) # TODO Placeholder value
             cystatin = self.epigentl_result['DNAmCystatinC_C_Pred'].iloc[i]
             adm = self.epigentl_result['DNAmADM_C_Pred'].iloc[i]
             timp = self.epigentl_result['DNAmTIMP1_C_Pred'].iloc[i]
             pai1 = self.epigentl_result['DNAmPAI1_C_Pred'].iloc[i]
             packyrs = self.epigentl_result['DNAmPACKYRS_C_Pred'].iloc[i]
 
+            # 计算百分位数
+            pace_pr = stats.norm.cdf(pace_value, loc=1, scale=0.2) * 100
+            if self.population_data is not None:
+                vo2max_pr = (self.population_data['vo2max'] < vo2max).mean() * 100 if 'vo2max' in self.population_data.columns else None
+                grip_pr = (self.population_data['grip'] < grip).mean() * 100 if 'grip' in self.population_data.columns else None
+                gait_pr = (self.population_data['gait'] < gait).mean() * 100 if 'gait' in self.population_data.columns else None
+                fitage_pr = (self.population_data['fitage'] < fitage).mean() * 100 if 'fitage' in self.population_data.columns else None
+                mentalhealth_pr = (self.population_data['mentalhealth'] < mentalhealth).mean() * 100 if 'mentalhealth' in self.population_data.columns else None
+            else:
+                self.logger.warning("Population data not available. Percentile ranks will be set to None.")
+                vo2max_pr = grip_pr = gait_pr = fitage_pr = mentalhealth_pr = None
+            
             report = {
                 sample_name: {
                     "sample_name": sample_name,
-                    "collection_date": date(2023, 1, 1),  # Placeholder date
-                    "report_date": date.today(),
+                    "cdt": datetime.now(timezone.utc),
                     "bio_age": bio_age,
-                    "chro_age": chro_age,
                     "pace_value": pace_value,
                     "pace_pr": pace_pr,
+                    "fitage": fitage,
+                    "fitage_pr": fitage_pr,
                     "vo2max": vo2max,
+                    "vo2max_pr": vo2max_pr,
                     "grip": grip,
+                    "grip_pr": grip_pr,
                     "gait": gait,
+                    "gait_pr": gait_pr,
+                    "mentalhealth": mentalhealth,
+                    "mentalhealth_pr": mentalhealth_pr,
                     "cystatin": cystatin,
                     "adm": adm,
                     "timp": timp,
@@ -109,7 +151,7 @@ class ReportGenerator:
 
         return reports
 
-    def save_reports(self, reports: List[Dict[str, Dict[str, Union[str, float, date]]]]) -> List[Report]:
+    def save_reports(self, reports: List[Dict[str, Dict[str, Union[str, float, datetime]]]]) -> List[Report]:
         db = SessionLocal()
         try:
             saved_reports = []
@@ -118,20 +160,25 @@ class ReportGenerator:
                     # 查找對應的 SampleData
                     sample = db.query(SampleData).filter(SampleData.sample_name == sample_name).first()
                     if not sample:
-                        logging.warning(f"Sample with name {sample_name} not found in database.")
+                        self.logger.warning(f"Sample with name {sample_name} not found in database.")
                         continue
 
                     new_report = Report(
-                        order_id=sample.id,
-                        collection_date=data['collection_date'],
-                        report_date=data['report_date'],
+                        order_ecid=data['sample_name'],
+                        cdt=data['cdt'],
                         bio_age=data['bio_age'],
-                        chro_age=data['chro_age'],
                         pace_value=data['pace_value'],
                         pace_pr=data['pace_pr'],
+                        fitage=data['fitage'],
+                        fitage_pr=data['fitage_pr'],
                         vo2max=data['vo2max'],
+                        vo2max_pr=data['vo2max_pr'],
                         grip=data['grip'],
+                        grip_pr=data['grip_pr'],
                         gait=data['gait'],
+                        gait_pr=data['gait_pr'],
+                        mentalhealth=data['mentalhealth'],
+                        mentalhealth_pr=data['mentalhealth_pr'],
                         cystatin=data['cystatin'],
                         adm=data['adm'],
                         timp=data['timp'],

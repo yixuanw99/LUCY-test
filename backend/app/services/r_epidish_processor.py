@@ -63,7 +63,7 @@ class EpiDISHProcessor:
             
             if output['status'] == 'success':
                 self.logger.info("EpiDISH processing completed successfully")
-                self.logger.info(f"Output: {output}")
+                # self.logger.info(f"Output: {output}")
                 
                 cell_proportion_data = output['data']['cell_proportion']
                 

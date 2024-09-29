@@ -7,10 +7,43 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.api.endpoints import report, sample, user
 from app.core.config import settings
 import os
+import base64
+import tempfile
+import atexit
 from app.db.base import Base
 from app.db.session import engine
 
 import logging
+
+# 全局變量來存儲臨時文件的路徑
+temp_cred_file = None
+
+def setup_google_credentials():
+    global temp_cred_file
+    if 'GOOGLE_APPLICATION_CREDENTIALS_CONTENT' in os.environ:
+        # 解碼 base64 內容
+        creds_content = base64.b64decode(os.environ['GOOGLE_APPLICATION_CREDENTIALS_CONTENT']).decode('utf-8')
+        
+        # 創建一個臨時文件
+        fd, path = tempfile.mkstemp()
+        with os.fdopen(fd, 'w') as tmp:
+            # 將內容寫入臨時文件
+            tmp.write(creds_content)
+        
+        # 設置 GOOGLE_APPLICATION_CREDENTIALS 環境變量指向這個臨時文件
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = path
+        temp_cred_file = path
+
+def cleanup_temp_file():
+    global temp_cred_file
+    if temp_cred_file and os.path.exists(temp_cred_file):
+        os.remove(temp_cred_file)
+
+# 在應用程序啟動時調用
+setup_google_credentials()
+
+# 註冊清理函數，在應用程序退出時執行
+atexit.register(cleanup_temp_file)
 
 # 設置日誌
 logging.basicConfig(level=logging.INFO)
@@ -21,7 +54,9 @@ print(f"Current environment: {os.getenv('ENVIRONMENT', 'development')}")
 print(f"Database URL: {settings.DATABASE_URL}")
 print(f"Debug mode: {settings.DEBUG}")
 
-Base.metadata.create_all(bind=engine)
+if settings.ENVIRONMENT == "development":
+    Base.metadata.create_all(bind=engine)
+    logger.info(f"Tables created: {', '.join(Base.metadata.tables.keys())}")
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

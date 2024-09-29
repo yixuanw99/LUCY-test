@@ -1,29 +1,33 @@
 # backend/app/db/models.py
-from sqlalchemy import Column, Integer, String, Boolean, Float, Date, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, Float, DateTime, text
+from sqlalchemy.dialects.postgresql import UUID
+import uuid
 from .base import Base
 
 class Report(Base):
     __tablename__ = "reports"
 
-    id = Column(Integer, primary_key=True)
-    order_id = Column(Integer, ForeignKey("sample_data.id"), nullable=False, unique=True, index=True)
-    collection_date = Column(Date)
-    report_date = Column(Date)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()"))
+    order_ecid = Column(String(255))
+    cdt = Column(DateTime(timezone=True))
     bio_age = Column(Float)
-    chro_age = Column(Float)
     pace_value = Column(Float)
-    pace_pr = Column(Integer)
+    pace_pr = Column(Float)
+    fitage = Column(Float)
+    fitage_pr = Column(Float)
     vo2max = Column(Float)
+    vo2max_pr = Column(Float)
     grip = Column(Float)
+    grip_pr = Column(Float)
     gait = Column(Float)
+    gait_pr = Column(Float)
+    mentalhealth = Column(Float)
+    mentalhealth_pr = Column(Float)
     cystatin = Column(Float)
     adm = Column(Float)
     timp = Column(Float)
     pai1 = Column(Float)
     packyrs = Column(Float)
-
-    sample_data = relationship("SampleData", back_populates="report", uselist=False, foreign_keys=[order_id])
 
 class SampleData(Base):
     __tablename__ = "sample_data"
@@ -37,8 +41,6 @@ class SampleData(Base):
     cell_proportion_path = Column(String(255), nullable=True)
     biolearn_output_path = Column(String(255), nullable=True)
     epigentl_output_path = Column(String(255), nullable=True)
-
-    report = relationship("Report", back_populates="sample_data", uselist=False)
 
 # 初始化數據庫的函數
 def init_db(engine):

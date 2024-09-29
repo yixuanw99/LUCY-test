@@ -6,6 +6,7 @@ from typing import List
 
 # 確定當前環境
 env = os.getenv("ENVIRONMENT", "development")
+# env = os.getenv("ENVIRONMENT", "production")
 
 # 加載相應的 .env 文件
 env_file = f".env.{env}"
@@ -15,10 +16,10 @@ class Settings(BaseSettings):
     ENVIRONMENT: str
     DATABASE_URL: str
     GCS_BUCKET_NAME: str
-    GOOGLE_APPLICATION_CREDENTIALS: str
+    GOOGLE_APPLICATION_CREDENTIALS: str = ""
     API_V1_STR: str
     PROJECT_NAME: str
-    BACKEND_CORS_ORIGINS: List[str]
+    BACKEND_CORS_ORIGINS: List[str] = []
     LOG_LEVEL: str
     CHAMP_R_SCRIPT_PATH: str
     EPIDISH_R_SCRIPT_PATH: str
