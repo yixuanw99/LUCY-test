@@ -36,6 +36,11 @@ def setup_logging():
         ]
     )
 
+def cap_pr(value):
+    """
+    將PR值限制在0到100之間。
+    """
+    return max(0, min(100, value))
 
 class ReportGenerator:
     def __init__(self):
@@ -71,16 +76,16 @@ class ReportGenerator:
     def load_population_data(self, csv_path=None):
         try:
             if csv_path:
-                # 从 CSV 文件加载数据
+                # 從 CSV 文件加載數據
                 self.population_data = pd.read_csv(csv_path)
             else:
-                # 使用硬编码的数据
+                # 使用硬編碼的數據
                 self.population_data = pd.DataFrame({
-                    'fitage': [37.5, 36.5, 37.5, 36.5, 37.5, 38.5, 38.5, 39.5, 39.5, 38.5],
-                    'vo2max': [36.9231, 36.0202, 37.6281, 36.8403, 37.6349, 38.75, 38.1789, 39.0707, 39.2625, 38.855],
-                    'grip': [35.576, 32.801, 34.6779, 32.7211, 34.6943, 34.5112, 33.4174, 33.7759, 38.9722, 38.8235],
-                    'gait': [1.9685, 1.8552, 1.8629, 1.8414, 1.7789, 1.9938, 2.0224, 1.974, 1.8812, 1.8868],
-                    'mentalhealth': [0.5, 0.6, 0.7, 0.8, 0.9, 0.5, 0.6, 0.7, 0.8, 0.9]
+                    'fitage': [29.219, 50.46631, 61.1163, 67.76352, 72.28644, 75.15615, 77.44028, 80.22087, 82.6989, 86.1581, 100.1406],
+                    'vo2max': [30.0562, 36.1469, 36.75708, 37.14681, 37.48146, 37.8964, 38.25902, 38.62972, 39.22418, 39.97038, 43.359],
+                    'grip': [26.9162, 30.48044, 31.49458, 32.38475, 33.1172, 33.81915, 34.38916, 35.1858, 36.54686, 38.88269, 48.9712],
+                    'gait': [1.2357, 1.51273, 1.57494, 1.61249, 1.64798, 1.6794, 1.71936, 1.7815, 1.8631, 1.974, 2.3878],
+                    'mentalhealth': [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
                 })
             self.logger.info("Population data loaded successfully.")
         except Exception as e:
@@ -93,13 +98,15 @@ class ReportGenerator:
         self._run_biolearn(metadata)
         self._run_epigentl()
 
-        # 确保已加载母体数据
-        self.load_population_data()
+        # 確保已加載母體數據 (位置目前先寫死)
+        GSEs_path = BACKEND_ROOT / 'app' / 'resources' / 'population_salivas' / 'GSEs.csv'
+        # "../resources/population_salivas/GSEs.csv"
+        self.load_population_data(GSEs_path)
 
         reports = []
         for i, sample_name in enumerate(self.processed_data.columns):
             bio_age = self.biolearn_result_Horvathv2['Horvathv2_Predicted'].iloc[i]
-            pace_value = self.biolearn_result_DunedinPACE['DunedinPACE_Predicted'].iloc[i]
+            pace_value = self.biolearn_result_DunedinPACE['DunedinPACE_Predicted'].iloc[i] - 0.059355713  # 582人跑出來的sa2bl平均值，直接平移來跟dunedinPACE對齊(都用1.0當人群mean)
             fitage = self.epigentl_result['DNAmFitAge_C_Pred'].iloc[i]
             vo2max = self.epigentl_result['DNAmVO2max_C_Pred'].iloc[i]
             grip = self.epigentl_result['DNAmGrip_noAge_C_Pred'].iloc[i]
@@ -111,14 +118,14 @@ class ReportGenerator:
             pai1 = self.epigentl_result['DNAmPAI1_C_Pred'].iloc[i]
             packyrs = self.epigentl_result['DNAmPACKYRS_C_Pred'].iloc[i]
 
-            # 计算百分位数
+            # 計算百分位數
             pace_pr = stats.norm.cdf(pace_value, loc=1, scale=0.2) * 100
             if self.population_data is not None:
-                vo2max_pr = (self.population_data['vo2max'] < vo2max).mean() * 100 if 'vo2max' in self.population_data.columns else None
-                grip_pr = (self.population_data['grip'] < grip).mean() * 100 if 'grip' in self.population_data.columns else None
-                gait_pr = (self.population_data['gait'] < gait).mean() * 100 if 'gait' in self.population_data.columns else None
-                fitage_pr = (self.population_data['fitage'] < fitage).mean() * 100 if 'fitage' in self.population_data.columns else None
-                mentalhealth_pr = (self.population_data['mentalhealth'] < mentalhealth).mean() * 100 if 'mentalhealth' in self.population_data.columns else None
+                fitage_pr = cap_pr((self.population_data['fitage'] < fitage).mean() * 100) if 'fitage' in self.population_data.columns else None
+                vo2max_pr = cap_pr((self.population_data['vo2max'] < vo2max).mean() * 100) if 'vo2max' in self.population_data.columns else None
+                grip_pr = cap_pr((self.population_data['grip'] < grip).mean() * 100) if 'grip' in self.population_data.columns else None
+                gait_pr = cap_pr((self.population_data['gait'] < gait).mean() * 100) if 'gait' in self.population_data.columns else None
+                mentalhealth_pr = cap_pr((self.population_data['mentalhealth'] < mentalhealth).mean() * 100) if 'mentalhealth' in self.population_data.columns else None
             else:
                 self.logger.warning("Population data not available. Percentile ranks will be set to None.")
                 vo2max_pr = grip_pr = gait_pr = fitage_pr = mentalhealth_pr = None
