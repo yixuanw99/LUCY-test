@@ -144,6 +144,7 @@ def generate_reports(pd_file_local_path, idat_folder_local_path, batch_name):
         # Read the Sample_Sheet.csv
         df = pd.read_csv(pd_file_local_path)
         metadata = {
+            'order_ecid': df['Sample_Name'].tolist(),
             'age': df['Age'].tolist(),
             'sex': [convert_gender_to_boolean(gender) for gender in df['Gender']]
         }
@@ -162,6 +163,7 @@ def generate_reports_from_local_betas(local_betas_path, pd_file_local_path):
         # Read the Sample_Sheet.csv
         df = pd.read_csv(pd_file_local_path)
         metadata = {
+            'order_ecid': df['Sample_Name'].tolist(),
             'age': df['Age'].tolist(),
             'sex': [convert_gender_to_boolean(gender) for gender in df['Gender']]
         }
@@ -183,6 +185,7 @@ def generate_reports_from_gcs(pd_file_gcs_path, idat_folder_gcs_path):
         pd_file_content = gcs_storage.download_as_text_utf8(pd_file_gcs_path)
         df = pd.read_csv(io.StringIO(pd_file_content))
         metadata = {
+            'order_ecid': df['Sample_Name'].tolist(),
             'age': df['Age'].tolist(),
             'sex': [convert_gender_to_boolean(gender) for gender in df['Gender']]
         }
@@ -200,7 +203,7 @@ def main(pd_file_path, idat_folder_path, batch_name):
     
     upload_sample_data(pd_file_path)
     # generate_reports(pd_file_path, idat_folder_path, batch_name)
-    local_betas_path = project_root / 'data' / 'processed_beta_table' / 'GSE48472_processed.csv'
+    local_betas_path = project_root / 'data' / 'processed_beta_table' / 'GSE232332_2_processed.csv'
     generate_reports_from_local_betas(local_betas_path, pd_file_path)
     
     logger.info("Sample processing and report generation completed.")
@@ -208,9 +211,9 @@ def main(pd_file_path, idat_folder_path, batch_name):
 if __name__ == "__main__":
     # PD_FILE_GCS_PATH = "gs://lucy-data-storage/data/raw/run1/Sample_Sheet.csv"
     # IDAT_FOLDER_GCS_PATH = "gs://lucy-data-storage/data/raw/run1/"
-    PD_FILE_PATH = project_root / "data" / "raw" / "GSE48472" / "Sample_Sheet.csv"
-    IDAT_FOLDER_PATH = project_root / "data" / "raw" / "GSE48472"
-    batch_name = "GSE48472"
+    PD_FILE_PATH = project_root / "data" / "raw" / "GSE232332_2" / "Sample_Sheet.csv"
+    IDAT_FOLDER_PATH = project_root / "data" / "raw" / "GSE232332_2"
+    batch_name = "GSE232332_2"
 
     
     main(PD_FILE_PATH, IDAT_FOLDER_PATH, batch_name)

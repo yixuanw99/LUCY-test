@@ -74,11 +74,24 @@ class BioLearnProcessor:
             raise ValueError("methylation_data must be either a file path or a pandas DataFrame")
         
         geo_data = GeoData.from_methylation_matrix(methylation_data)
+        
         if metadata:
-            if 'age' in metadata:
-                geo_data.metadata['age'] = metadata['age']
-            if 'sex' in metadata:
-                geo_data.metadata['sex'] = metadata['sex']
+            # Get the sample names from the methylation data
+            sample_names = methylation_data.columns
+
+            # Create dictionaries to map sample names to age and sex
+            age_dict = dict(zip(metadata['order_ecid'], metadata['age']))
+            sex_dict = dict(zip(metadata['order_ecid'], metadata['sex']))
+
+            # Select only the metadata for samples present in methylation_data
+            selected_ages = [age_dict[sample] for sample in sample_names if sample in age_dict]
+            selected_sexes = [sex_dict[sample] for sample in sample_names if sample in sex_dict]
+
+            # Assign the selected metadata to geo_data
+            geo_data.metadata['age'] = selected_ages
+            geo_data.metadata['sex'] = selected_sexes
+
+            self.logger.info(f"Metadata assigned: {len(selected_ages)} ages, {len(selected_sexes)} sexes")
         
         results_df = self.process_biolearn_models(geo_data, models)
         relative_path = self.save_model_results(results_df, output_file)
