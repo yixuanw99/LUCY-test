@@ -2,7 +2,6 @@
 import numpy as np
 import pandas as pd
 import joblib
-import sys
 from pathlib import Path
 import logging
 from typing import Dict, Union

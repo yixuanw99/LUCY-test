@@ -16,6 +16,7 @@ from app.services.r_epidish_processor import EpiDISHProcessor
 from app.services.sa2bl_processor import SA2BLProcessor
 from app.services.biolearn_processor import BioLearnProcessor
 from app.services.r_epigentl_processor import EpigenTLProcessor
+from app.services.mentalhealth_processor import MentalHealthProcessor
 from app.db.models import Report, SampleData
 from app.db.session import SessionLocal
 
@@ -52,11 +53,13 @@ class ReportGenerator:
         self.biolearn_result_Horvathv2 = None
         self.biolearn_result_DunedinPACE = None
         self.epigentl_result = None
+        self.mentalhealth_result = None
         self.population_data = None
         self.epidish_processor = EpiDISHProcessor()
         self.sa2bl_processor = SA2BLProcessor()
         self.biolearn_processor = BioLearnProcessor()
         self.epigentl_processor = EpigenTLProcessor()
+        self.mentalhealth_processor = MentalHealthProcessor(classifier='logistic')
 
     def _run_epidish(self):
         self.epidish_data = self.epidish_processor.run_epidish_with_csv(self.processed_data_path)
@@ -72,6 +75,15 @@ class ReportGenerator:
         
     def _run_epigentl(self):
         self.epigentl_result = self.epigentl_processor.run_epigentl_with_csv(self.processed_data_path)
+
+    def _run_mentalhealth(self):
+        mentalhealth_features = ['DNAmADM_C_Pred', 'DNAmCystatinC_C_Pred', 'DNAmPAI1_C_Pred', 'DNAmTIMP1_C_Pred']
+        mentalhealth_data = pd.DataFrame({
+            feature: [getattr(self.epigentl_result, feature).iloc[i] for i in range(len(self.processed_data.columns))]
+            for feature in mentalhealth_features
+        }, index=self.processed_data.columns)
+        
+        self.mentalhealth_result = self.mentalhealth_processor.predict_mentalhealth(mentalhealth_data)
 
     def load_population_data(self, csv_path=None, metadata=None):
         try:
@@ -102,17 +114,20 @@ class ReportGenerator:
                         gender = "Male"
                     else:
                         gender = None
-                    
+
                     # 篩選同年齡層和同性別的數據
                     if gender is not None:
                         self.population_data = df[age_group & (df['gender'] == gender)]
-                    else:
+                    elif age is not None and not np.isnan(age):
                         self.population_data = df[age_group]
                         self.logger.warning(f"no gender information provided in metadata. Using data for age group {age_group}")
+                    else:
+                        self.logger.warning("Metadata does not contain age or sex information. Using all data.")
+                        self.population_data = df
                     self.logger.info(f"Filtered data: {len(self.population_data)} rows")
                 else:
-                    self.logger.warning("Metadata does not contain age or sex information. Using all data.")
-                    self.population_data = df
+                    self.logger.warning("Metadata does not contain age and sex information. Setting population_data to None.")
+                    self.population_data = None
             else:
                 self.logger.info("No CSV path or metadata provided. Setting population_data to None.")
                 self.population_data = None
@@ -131,16 +146,20 @@ class ReportGenerator:
             self.logger.error(f"Error loading population data: {str(e)}", exc_info=True)
             self.population_data = None
                     
-    def generate_report(self, metadata=None) -> List[Dict[str, Dict[str, Union[str, float, datetime]]]]:
+    def generate_report(self, metadata=None, mentalhealth_classifier='logistic') -> List[Dict[str, Dict[str, Union[str, float, datetime]]]]:
+        # If the classifier has changed, reinitialize the MentalHealthProcessor
+        if mentalhealth_classifier != self.mentalhealth_processor.classifier:
+            self.mentalhealth_processor = MentalHealthProcessor(classifier=mentalhealth_classifier)
+        
         self._run_epidish()
         self._perform_sa2bl()
         self._run_biolearn(metadata)
         self._run_epigentl()
+        self._run_mentalhealth()
 
         # 確保已加載母體數據 (位置目前先寫死)
         GSEs_path = BACKEND_ROOT / 'app' / 'resources' / 'population_salivas' / 'GSEs.csv'
         # "../resources/population_salivas/GSEs.csv"
-        # self.load_population_data(GSEs_path, metadata=metadata) # old code 全部人都用一樣的population_data
 
         reports = []
         for i, sample_name in enumerate(self.processed_data.columns):
@@ -160,7 +179,7 @@ class ReportGenerator:
             vo2max = self.epigentl_result['DNAmVO2max_C_Pred'].iloc[i]
             grip = self.epigentl_result['DNAmGrip_noAge_C_Pred'].iloc[i]
             gait = self.epigentl_result['DNAmGait_noAge_C_Pred'].iloc[i]
-            mentalhealth = random.uniform(0, 1) # TODO Placeholder value
+            mentalhealth = self.mentalhealth_result['probabilities'][i]
             cystatin = self.epigentl_result['DNAmCystatinC_C_Pred'].iloc[i]
             adm = self.epigentl_result['DNAmADM_C_Pred'].iloc[i]
             timp = self.epigentl_result['DNAmTIMP1_C_Pred'].iloc[i]
@@ -252,8 +271,8 @@ class ReportGenerator:
         finally:
             db.close()
 
-    def generate_and_save_reports(self, metadata = None) -> List[Report]:
-        reports = self.generate_report(metadata = metadata)
+    def generate_and_save_reports(self, metadata=None, mentalhealth_classifier='logistic') -> List[Report]:
+        reports = self.generate_report(metadata=metadata, mentalhealth_classifier=mentalhealth_classifier)
         return self.save_reports(reports)
 
 class IdatReportGenerator(ReportGenerator):
