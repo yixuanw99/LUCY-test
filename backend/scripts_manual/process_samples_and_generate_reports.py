@@ -129,46 +129,47 @@ def upload_sample_data_from_gcs(pd_file_gcs_path):
     finally:
         session.close()
 
+def convert_gender_to_boolean(gender):
+    if gender == 'Female':
+        return False
+    elif gender == 'Male':
+        return True
+    else:
+        return None
+
 def generate_reports(pd_file_local_path, idat_folder_local_path, batch_name):
     """生成報告"""
     db = SessionLocal()
     try:
-        # TODO: 從數據庫中獲取樣本的年齡和性別信息
-        # samples = db.query(models.SampleData).all()
-        # metadata = {
-        #     'age': [sample.user.birthday.year for sample in samples],
-        #     'sex': [2 if sample.user.sex == 'F' else 1 for sample in samples]
-        # }
-        # metadata = {
-        #     'age': [42, 42, 43, 43, 43, 28, 28, 28, 42, 42, 43, 43, 43, 28, 28, 28],
-        #     'sex': [2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1]
-        # }
+        # Read the Sample_Sheet.csv
+        df = pd.read_csv(pd_file_local_path)
+        metadata = {
+            'age': df['Age'].tolist(),
+            'sex': [convert_gender_to_boolean(gender) for gender in df['Gender']]
+        }
         
         local_generator = IdatReportGenerator()
         local_generator.process_data(pd_file_local_path, idat_folder_local_path, batch_name)
-        report_from_local = local_generator.generate_and_save_reports()
+        report_from_local = local_generator.generate_and_save_reports(metadata)
         logger.info(f"Generated and saved {len(report_from_local)} reports.")
     finally:
         db.close()
 
-def generate_reports_from_local_betas(local_betas_path):
+def generate_reports_from_local_betas(local_betas_path, pd_file_local_path):
     """生成報告"""
     db = SessionLocal()
     try:
-        # TODO: 從數據庫中獲取樣本的年齡和性別信息
-        # samples = db.query(models.SampleData).all()
-        # metadata = {
-        #     'age': [sample.user.birthday.year for sample in samples],
-        #     'sex': [2 if sample.user.sex == 'F' else 1 for sample in samples]
-        # }
-        # metadata = {
-        #     'age': [42, 42, 43, 43, 43, 28, 28, 28, 42, 42, 43, 43, 43, 28, 28, 28],
-        #     'sex': [2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1]
-        # }
+        # Read the Sample_Sheet.csv
+        df = pd.read_csv(pd_file_local_path)
+        metadata = {
+            'age': df['Age'].tolist(),
+            'sex': [convert_gender_to_boolean(gender) for gender in df['Gender']]
+        }
+        logger.info(f"pd_file metadata: {metadata}")
         
         local_betas_report_generator = ProcessedDataReportGenerator()
         local_betas_report_generator.process_data(local_betas_path)
-        report_from_local = local_betas_report_generator.generate_and_save_reports()
+        report_from_local = local_betas_report_generator.generate_and_save_reports(metadata)
         logger.info(f"Generated and saved {len(report_from_local)} reports.")
     finally:
         db.close()
@@ -177,15 +178,13 @@ def generate_reports_from_gcs(pd_file_gcs_path, idat_folder_gcs_path):
     """生成報告"""
     db = SessionLocal()
     try:
-        # TODO: 從數據庫中獲取樣本的年齡和性別信息
-        # samples = db.query(models.SampleData).all()
-        # metadata = {
-        #     'age': [sample.user.birthday.year for sample in samples],
-        #     'sex': [2 if sample.user.sex == 'F' else 1 for sample in samples]
-        # }
+        # Download and read the Sample_Sheet.csv from GCS
+        gcs_storage = GCSStorage()
+        pd_file_content = gcs_storage.download_as_text_utf8(pd_file_gcs_path)
+        df = pd.read_csv(io.StringIO(pd_file_content))
         metadata = {
-            'age': [42, 42, 43, 43, 43, 28, 28, 28, 42, 42, 43, 43, 43, 28, 28, 28],
-            'sex': [2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1]
+            'age': df['Age'].tolist(),
+            'sex': [convert_gender_to_boolean(gender) for gender in df['Gender']]
         }
         
         gcs_generator = IdatReportGenerator()
@@ -201,17 +200,17 @@ def main(pd_file_path, idat_folder_path, batch_name):
     
     upload_sample_data(pd_file_path)
     # generate_reports(pd_file_path, idat_folder_path, batch_name)
-    local_betas_path = project_root / 'data' / 'processed_beta_table' / 'GSE111631_2_processed.csv'
-    generate_reports_from_local_betas(local_betas_path)
+    local_betas_path = project_root / 'data' / 'processed_beta_table' / 'GSE48472_processed.csv'
+    generate_reports_from_local_betas(local_betas_path, pd_file_path)
     
     logger.info("Sample processing and report generation completed.")
 
 if __name__ == "__main__":
     # PD_FILE_GCS_PATH = "gs://lucy-data-storage/data/raw/run1/Sample_Sheet.csv"
     # IDAT_FOLDER_GCS_PATH = "gs://lucy-data-storage/data/raw/run1/"
-    PD_FILE_PATH = project_root / "data" / "raw" / "GSE111631_2" / "Sample_Sheet.csv"
-    IDAT_FOLDER_PATH = project_root / "data" / "raw" / "GSE111631_2"
-    batch_name = "GSE111631_2"
+    PD_FILE_PATH = project_root / "data" / "raw" / "GSE48472" / "Sample_Sheet.csv"
+    IDAT_FOLDER_PATH = project_root / "data" / "raw" / "GSE48472"
+    batch_name = "GSE48472"
 
     
     main(PD_FILE_PATH, IDAT_FOLDER_PATH, batch_name)

@@ -73,23 +73,62 @@ class ReportGenerator:
     def _run_epigentl(self):
         self.epigentl_result = self.epigentl_processor.run_epigentl_with_csv(self.processed_data_path)
 
-    def load_population_data(self, csv_path=None):
+    def load_population_data(self, csv_path=None, metadata=None):
         try:
-            if csv_path:
+            if csv_path and metadata:
                 # 從 CSV 文件加載數據
-                self.population_data = pd.read_csv(csv_path)
+                df = pd.read_csv(csv_path)
+                
+                # 確保 metadata 包含必要的信息
+                if 'age' in metadata and 'sex' in metadata:
+                    # 假設 metadata 只包含一個樣本的信息
+                    age = metadata['age'][0]
+                    sex = metadata['sex'][0]
+
+                    self.logger.info(f"Processing data for age: {age}, sex: {sex}")
+                    
+                    # 定義年齡組
+                    if age < 40:
+                        age_group = (df['age'] < 40)
+                    elif 40 <= age < 60:
+                        age_group = (df['age'] >= 40) & (df['age'] < 60)
+                    else:
+                        age_group = (df['age'] >= 60)
+                    
+                    # 將 metadata 中的 'sex' 值轉換為與 CSV 中 'gender' 列匹配的格式
+                    if sex == False:
+                        gender = "Female"
+                    elif sex == True:
+                        gender = "Male"
+                    else:
+                        gender = None
+                    
+                    # 篩選同年齡層和同性別的數據
+                    if gender is not None:
+                        self.population_data = df[age_group & (df['gender'] == gender)]
+                    else:
+                        self.population_data = df[age_group]
+                        self.logger.warning(f"no gender information provided in metadata. Using data for age group {age_group}")
+                    self.logger.info(f"Filtered data: {len(self.population_data)} rows")
+                else:
+                    self.logger.warning("Metadata does not contain age or sex information. Using all data.")
+                    self.population_data = df
             else:
-                # 使用硬編碼的數據
-                self.population_data = pd.DataFrame({
-                    'fitage': [29.219, 50.46631, 61.1163, 67.76352, 72.28644, 75.15615, 77.44028, 80.22087, 82.6989, 86.1581, 100.1406],
-                    'vo2max': [30.0562, 36.1469, 36.75708, 37.14681, 37.48146, 37.8964, 38.25902, 38.62972, 39.22418, 39.97038, 43.359],
-                    'grip': [26.9162, 30.48044, 31.49458, 32.38475, 33.1172, 33.81915, 34.38916, 35.1858, 36.54686, 38.88269, 48.9712],
-                    'gait': [1.2357, 1.51273, 1.57494, 1.61249, 1.64798, 1.6794, 1.71936, 1.7815, 1.8631, 1.974, 2.3878],
-                    'mentalhealth': [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-                })
+                self.logger.info("No CSV path or metadata provided. Setting population_data to None.")
+                self.population_data = None
+            
+            # # 硬編碼的數據（已註釋）
+            # self.population_data = pd.DataFrame({
+            #     'fitage': [29.219, 50.46631, 61.1163, 67.76352, 72.28644, 75.15615, 77.44028, 80.22087, 82.6989, 86.1581, 100.1406],
+            #     'vo2max': [30.0562, 36.1469, 36.75708, 37.14681, 37.48146, 37.8964, 38.25902, 38.62972, 39.22418, 39.97038, 43.359],
+            #     'grip': [26.9162, 30.48044, 31.49458, 32.38475, 33.1172, 33.81915, 34.38916, 35.1858, 36.54686, 38.88269, 48.9712],
+            #     'gait': [1.2357, 1.51273, 1.57494, 1.61249, 1.64798, 1.6794, 1.71936, 1.7815, 1.8631, 1.974, 2.3878],
+            #     'mentalhealth': [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+            # })
+            
             self.logger.info("Population data loaded successfully.")
         except Exception as e:
-            self.logger.error(f"Error loading population data: {str(e)}")
+            self.logger.error(f"Error loading population data: {str(e)}", exc_info=True)
             self.population_data = None
                     
     def generate_report(self, metadata=None) -> List[Dict[str, Dict[str, Union[str, float, datetime]]]]:
@@ -101,12 +140,22 @@ class ReportGenerator:
         # 確保已加載母體數據 (位置目前先寫死)
         GSEs_path = BACKEND_ROOT / 'app' / 'resources' / 'population_salivas' / 'GSEs.csv'
         # "../resources/population_salivas/GSEs.csv"
-        self.load_population_data(GSEs_path)
+        # self.load_population_data(GSEs_path, metadata=metadata) # old code 全部人都用一樣的population_data
 
         reports = []
         for i, sample_name in enumerate(self.processed_data.columns):
+            self.logger.info(f"Generating report for sample {sample_name}")
+            self.logger.info(f"sample gender: {metadata['sex'][i]}")
+            self.logger.info(f"sample age: {float(metadata['age'][i])}")
+
+            # 为每个样本加载特定的人群数据
+            sample_metadata = {
+                'age': [metadata['age'][i]],
+                'sex': [metadata['sex'][i]]
+            }
+            self.load_population_data(GSEs_path, metadata=sample_metadata)
             bio_age = self.biolearn_result_Horvathv2['Horvathv2_Predicted'].iloc[i]
-            pace_value = self.biolearn_result_DunedinPACE['DunedinPACE_Predicted'].iloc[i] - 0.059355713  # 582人跑出來的sa2bl平均值，直接平移來跟dunedinPACE對齊(都用1.0當人群mean)
+            pace_value = self.biolearn_result_DunedinPACE['DunedinPACE_Predicted'].iloc[i] - 0.059355713  # 582人跑出來的sa2bl平均值，直接平移來跟dunedinPACE對齊(都用1.0當人羣mean)
             fitage = self.epigentl_result['DNAmFitAge_C_Pred'].iloc[i]
             vo2max = self.epigentl_result['DNAmVO2max_C_Pred'].iloc[i]
             grip = self.epigentl_result['DNAmGrip_noAge_C_Pred'].iloc[i]
@@ -133,6 +182,8 @@ class ReportGenerator:
             report = {
                 sample_name: {
                     "sample_name": sample_name,
+                    "gender": metadata['sex'][i],
+                    "age": float(metadata['age'][i]),
                     "cdt": datetime.now(timezone.utc),
                     "bio_age": bio_age,
                     "pace_value": pace_value,
@@ -172,6 +223,8 @@ class ReportGenerator:
 
                     new_report = Report(
                         order_ecid=data['sample_name'],
+                        gender=data['gender'],
+                        age=data['age'],
                         cdt=data['cdt'],
                         bio_age=data['bio_age'],
                         pace_value=data['pace_value'],
