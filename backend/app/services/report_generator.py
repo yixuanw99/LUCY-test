@@ -187,13 +187,13 @@ class ReportGenerator:
             packyrs = self.epigentl_result['DNAmPACKYRS_C_Pred'].iloc[i]
 
             # 計算百分位數
-            pace_pr = stats.norm.cdf(pace_value, loc=1, scale=0.2) * 100
+            pace_pr = stats.norm.sf(pace_value, loc=1, scale=0.1381) * 100
             if self.population_data is not None:
-                fitage_pr = cap_pr((self.population_data['fitage'] < fitage).mean() * 100) if 'fitage' in self.population_data.columns else None
+                fitage_pr = cap_pr((self.population_data['fitage'] >= fitage).mean() * 100) if 'fitage' in self.population_data.columns else None
                 vo2max_pr = cap_pr((self.population_data['vo2max'] < vo2max).mean() * 100) if 'vo2max' in self.population_data.columns else None
                 grip_pr = cap_pr((self.population_data['grip'] < grip).mean() * 100) if 'grip' in self.population_data.columns else None
                 gait_pr = cap_pr((self.population_data['gait'] < gait).mean() * 100) if 'gait' in self.population_data.columns else None
-                mentalhealth_pr = cap_pr((self.population_data['mentalhealth'] < mentalhealth).mean() * 100) if 'mentalhealth' in self.population_data.columns else None
+                mentalhealth_pr = cap_pr((self.population_data['mentalhealth'] >= mentalhealth).mean() * 100) if 'mentalhealth' in self.population_data.columns else None
             else:
                 self.logger.warning("Population data not available. Percentile ranks will be set to None.")
                 vo2max_pr = grip_pr = gait_pr = fitage_pr = mentalhealth_pr = None
