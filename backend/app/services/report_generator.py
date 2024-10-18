@@ -174,12 +174,12 @@ class ReportGenerator:
             }
             self.load_population_data(GSEs_path, metadata=sample_metadata)
             bio_age = self.biolearn_result_Horvathv2['Horvathv2_Predicted'].iloc[i]
-            pace_value = self.biolearn_result_DunedinPACE['DunedinPACE_Predicted'].iloc[i] - 0.059355713  # 582人跑出來的sa2bl平均值，直接平移來跟dunedinPACE對齊(都用1.0當人羣mean)
+            pace_value = self.biolearn_result_DunedinPACE['DunedinPACE_Predicted'].iloc[i] - 0.059355713  # 582人跑出來的sa2bl平均值，直接平移來跟dunedinPACE對齊(都用1.0當人群mean)
             fitage = self.epigentl_result['DNAmFitAge_C_Pred'].iloc[i]
             vo2max = self.epigentl_result['DNAmVO2max_C_Pred'].iloc[i]
             grip = self.epigentl_result['DNAmGrip_noAge_C_Pred'].iloc[i]
             gait = self.epigentl_result['DNAmGait_noAge_C_Pred'].iloc[i]
-            mentalhealth = self.mentalhealth_result['probabilities'][i]
+            mentalhealth = (self.mentalhealth_result['probabilities'][i] - 0.5) * 2 # 將機率轉換為[-1, 1]的範圍
             cystatin = self.epigentl_result['DNAmCystatinC_C_Pred'].iloc[i]
             adm = self.epigentl_result['DNAmADM_C_Pred'].iloc[i]
             timp = self.epigentl_result['DNAmTIMP1_C_Pred'].iloc[i]
